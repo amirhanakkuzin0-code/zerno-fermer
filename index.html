@@ -14,6 +14,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Leaflet CSS & JS (Интерактивные карты) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <!-- Google Fonts Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -24,6 +28,7 @@
           colors: {
             brand: {
               50: '#eaf5ec',
+              100: '#cce7d2',
               500: '#2d7d39',
               600: '#23632d',
               700: '#1b4d23'
@@ -51,6 +56,7 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+    #map { height: 220px; width: 100%; border-radius: 1.5rem; z-index: 1; }
   </style>
 </head>
 <body class="text-gray-900 pb-20">
@@ -58,16 +64,16 @@
   <!-- ================= 1. АВТОРИЗАЦИЯ ================= -->
   <section id="screen-auth" class="screen min-h-screen p-5 flex flex-col justify-between bg-white">
     <div class="mt-8">
-      <div class="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center mb-6">
+      <div class="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
         <i data-lucide="sprout" class="w-9 h-9 text-brand-500"></i>
       </div>
       <h1 class="text-2xl font-extrabold text-gray-900 mb-2">ЗЕРНО.ФЕРМЕР</h1>
-      <p class="text-sm text-gray-500 mb-8">Закуп зерна и оперативный вызов экспресс-лаборатории в поле</p>
+      <p class="text-sm text-gray-500 mb-8">Платформа прямых продаж зерна и экспресс-анализа качества на току</p>
 
       <div class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Номер телефона</label>
-          <div class="flex items-center border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 transition-all">
+          <div class="flex items-center border border-gray-200 rounded-2xl px-4 py-3.5 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 transition-all">
             <span class="text-base font-semibold text-gray-700 mr-2">🇰🇿 +7</span>
             <input type="tel" id="auth-phone" placeholder="(705) 000-00-00" class="w-full bg-transparent outline-none text-base font-semibold text-gray-900 placeholder-gray-400">
           </div>
@@ -76,7 +82,7 @@
     </div>
 
     <button onclick="goToScreen('profile')" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all">
-      Получить код в Telegram
+      Войти через Telegram
     </button>
   </section>
 
@@ -87,12 +93,12 @@
         <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад
       </button>
 
-      <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Профиль фермера</h1>
-      <p class="text-sm text-gray-500 mb-6">Заполните данные для быстрого оформления выездов</p>
+      <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Профиль хозяйства</h1>
+      <p class="text-sm text-gray-500 mb-6">Укажите данные для автоматического расчета логистики</p>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Тип хозяйства</label>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Форма собственности</label>
           <div class="grid grid-cols-2 gap-3">
             <button onclick="selectRole(this)" class="role-btn active border-2 border-brand-500 bg-brand-50 text-brand-500 font-bold py-3 px-4 rounded-xl text-sm">КХ / ТОО</button>
             <button onclick="selectRole(this)" class="role-btn border-2 border-gray-100 bg-gray-50 text-gray-600 font-medium py-3 px-4 rounded-xl text-sm">Частное лицо</button>
@@ -101,12 +107,12 @@
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Название КХ или ФИО</label>
-          <input type="text" id="profile-name" value="КХ «Дала» (Серик)" class="w-full border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 outline-none focus:bg-white focus:border-brand-500 font-semibold text-gray-900">
+          <input type="text" id="profile-name" value="КХ «Дала»" class="w-full border border-gray-200 rounded-2xl px-4 py-3.5 bg-gray-50 outline-none focus:bg-white focus:border-brand-500 font-semibold text-gray-900">
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Основной район полей</label>
-          <select class="w-full border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 outline-none focus:bg-white focus:border-brand-500 font-semibold text-gray-900">
+          <select class="w-full border border-gray-200 rounded-2xl px-4 py-3.5 bg-gray-50 outline-none focus:bg-white focus:border-brand-500 font-semibold text-gray-900">
             <option>Костанайский р-н</option>
             <option>Федоровский р-н</option>
             <option>Мендыкаринский р-н</option>
@@ -121,21 +127,19 @@
     </button>
   </section>
 
-  <!-- ================= 3. ГЛАВНАЯ (МЕЛЬНИЦЫ) ================= -->
+  <!-- ================= 3. ГЛАВНАЯ (МЕЛЬНИЦЫ И ЦЕНЫ) ================= -->
   <section id="screen-mills" class="screen hidden min-h-screen">
-    <!-- Header -->
     <div class="bg-white p-4 sticky top-0 z-10 border-b border-gray-100 shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <div>
-          <h1 class="text-xl font-bold text-gray-900">Покупатели зерна</h1>
-          <p class="text-xs text-gray-500">Костанайская область • Цены на сегодня</p>
+          <h1 class="text-xl font-bold text-gray-900">Закупка зерна</h1>
+          <p class="text-xs text-gray-500">Костанайская область • Цены за вычетом комиссии</p>
         </div>
         <div class="w-9 h-9 bg-brand-50 rounded-full flex items-center justify-center text-brand-500 font-bold text-sm">
           🌾
         </div>
       </div>
 
-      <!-- Фильтры культур -->
       <div class="flex gap-2 overflow-x-auto hide-scrollbar pt-2">
         <button class="bg-brand-500 text-white font-semibold text-xs px-4 py-2 rounded-xl whitespace-nowrap shadow-sm">Все культуры</button>
         <button class="bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Пшеница 3 кл.</button>
@@ -144,88 +148,123 @@
       </div>
     </div>
 
-    <!-- Список элеваторов -->
-    <div class="p-4 space-y-3">
-      <!-- Карточка 1 -->
+    <div class="p-4 space-y-4">
+
+      <!-- Карточка Мельницы 1 -->
       <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div class="flex justify-between items-start mb-2">
           <div>
             <h3 class="font-bold text-base text-gray-900">ТОО «Рамона»</h3>
-            <p class="text-xs text-gray-500 flex items-center gap-1">
-              <i data-lucide="map-pin" class="w-3 h-3 text-brand-500"></i> Костанайский р-н (18 км)
+            <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> Костанайский р-н (п. Заречное)
             </p>
           </div>
-          <span class="bg-green-50 text-brand-500 text-[10px] font-bold px-2 py-1 rounded-md">Приемка 24/7</span>
+          <span class="bg-green-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-md">Приемка 24/7</span>
         </div>
 
-        <div class="bg-gray-50 rounded-xl p-3 my-3 flex justify-between items-center">
-          <div>
-            <div class="text-xs text-gray-500">Пшеница 3 кл. (Клейковина 25+)</div>
-            <div class="text-lg font-extrabold text-brand-500">92 000 ₸ <span class="text-xs font-normal text-gray-500">/ тонна</span></div>
+        <!-- Блок Цены с комиссией -->
+        <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-gray-500">Пшеница 3 кл. (Клейк. 25+)</span>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Цена гарантирована</span>
           </div>
-          <i data-lucide="trending-up" class="w-5 h-5 text-brand-500"></i>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-extrabold text-brand-500">91 500 ₸</span>
+            <span class="text-xs font-medium text-gray-400">/ тонна</span>
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Базовая цена мельницы: 92 000 ₸ (Спред 500 ₸/т)
+          </div>
         </div>
 
-        <button onclick="openRequestForm('ТОО «Рамона»', 'Пшеница 3 кл.')" class="w-full bg-brand-500 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-          <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лаборанта
+        <button onclick="openRequestForm('ТОО «Рамона»', 'Пшеница 3 кл.', 91500, 500)" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
+          <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
         </button>
       </div>
 
-      <!-- Карточка 2 -->
+      <!-- Карточка Мельницы 2 -->
       <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div class="flex justify-between items-start mb-2">
           <div>
             <h3 class="font-bold text-base text-gray-900">Мельница «Костанай-Ун»</h3>
-            <p class="text-xs text-gray-500 flex items-center gap-1">
-              <i data-lucide="map-pin" class="w-3 h-3 text-brand-500"></i> г. Костанай, Промзона
+            <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> г. Костанай, ул. Элеваторная
             </p>
           </div>
-          <span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-1 rounded-md">Очередь 2 авто</span>
+          <span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2.5 py-1 rounded-md">Очередь ~2 авто</span>
         </div>
 
-        <div class="bg-gray-50 rounded-xl p-3 my-3 flex justify-between items-center">
-          <div>
-            <div class="text-xs text-gray-500">Ячмень фуражный</div>
-            <div class="text-lg font-extrabold text-gray-900">65 000 ₸ <span class="text-xs font-normal text-gray-500">/ тонна</span></div>
+        <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-gray-500">Ячмень фуражный</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-extrabold text-gray-900">64 500 ₸</span>
+            <span class="text-xs font-medium text-gray-400">/ тонна</span>
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Базовая цена мельницы: 65 000 ₸ (Спред 500 ₸/т)
           </div>
         </div>
 
-        <button onclick="openRequestForm('Мельница «Костанай-Ун»', 'Ячмень')" class="w-full bg-brand-50 text-brand-500 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-          <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лаборанта
+        <button onclick="openRequestForm('Мельница «Костанай-Ун»', 'Ячмень', 64500, 500)" class="w-full bg-brand-50 text-brand-500 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+          <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
         </button>
       </div>
+
     </div>
   </section>
 
-  <!-- ================= 4. ФОРМА ВЫЗОВА ЛАБОРАНТА ================= -->
+  <!-- ================= 4. ФОРМА ВЫЗОВА С КАЛЬКУЛЯТОРОМ ================= -->
   <section id="screen-lab-request" class="screen hidden min-h-screen p-4 bg-white">
     <button onclick="goToScreen('mills')" class="text-gray-400 hover:text-gray-700 mb-4 flex items-center gap-1 text-sm font-medium">
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад к мельницам
     </button>
 
-    <h1 class="text-xl font-bold text-gray-900 mb-1">Вызов лаборанта на ток</h1>
-    <p class="text-xs text-gray-500 mb-6">Лаборант приедет с портативным экспресс-анализатором качества</p>
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Заявка на экспресс-анализ</h1>
+    <p class="text-xs text-gray-500 mb-5">Лаборант приедет на ток с мобильным анализатором качества</p>
 
+    <!-- Покупатель -->
     <div class="bg-brand-50 border border-brand-500/20 rounded-2xl p-4 mb-5">
-      <div class="text-xs font-semibold text-brand-500 uppercase tracking-wider mb-1">Выбранный покупатель</div>
+      <div class="text-[10px] font-bold text-brand-500 uppercase tracking-wider mb-1">Выбранный покупатель</div>
       <div id="selected-mill-title" class="text-base font-bold text-gray-900">ТОО «Рамона»</div>
-      <div id="selected-crop-title" class="text-xs text-gray-600">Пшеница 3 класс</div>
+      <div id="selected-crop-title" class="text-xs text-gray-600">Пшеница 3 класс • 91 500 ₸/т</div>
     </div>
 
-    <div class="space-y-4 mb-8">
+    <div class="space-y-4 mb-6">
+      <!-- Выбор объема -->
       <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ориентировочный объём (тонн)</label>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Объём партии (тонн)</label>
         <div class="grid grid-cols-4 gap-2 mb-2">
           <button onclick="setVolume(30)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">30 т</button>
           <button onclick="setVolume(60)" class="vol-btn border-2 border-brand-500 bg-brand-50 py-2 rounded-xl text-xs font-bold text-brand-500">60 т</button>
           <button onclick="setVolume(120)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">120 т</button>
-          <button onclick="setVolume(300)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">300+ т</button>
+          <button onclick="setVolume(300)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">300 т</button>
         </div>
-        <input type="number" id="volume-input" value="60" class="w-full border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 font-bold text-gray-900 outline-none focus:bg-white focus:border-brand-500">
+        <input type="number" id="volume-input" value="60" oninput="calculateDeal()" class="w-full border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 font-bold text-gray-900 outline-none focus:bg-white focus:border-brand-500">
       </div>
 
+      <!-- ИНТЕРАКТИВНЫЙ РАСЧЕТ СДЕЛКИ -->
+      <div class="bg-gray-900 text-white rounded-2xl p-4 space-y-2">
+        <div class="text-xs text-gray-400 font-medium">Расчёт финансовой сделки:</div>
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-300">Выплата фермеру:</span>
+          <span id="calc-farmer-payout" class="font-extrabold text-emerald-400 text-base">5 490 000 ₸</span>
+        </div>
+        <div class="flex justify-between items-center text-xs pt-2 border-t border-gray-800 text-gray-400">
+          <span>Сервисный сбор платформы (вшит):</span>
+          <span id="calc-service-fee" class="font-bold text-gray-300">30 000 ₸</span>
+        </div>
+      </div>
+
+      <!-- Локация + GPS -->
       <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Локация тока или поля</label>
+        <div class="flex justify-between items-center mb-2">
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Локация тока или поля</label>
+          <button onclick="getGPSLocation()" class="text-xs font-bold text-brand-500 flex items-center gap-1">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i> По GPS
+          </button>
+        </div>
         <div class="relative">
           <input type="text" id="location-input" value="Ток №2 (Костанайский р-н, с.Заречное)" class="w-full border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 font-semibold text-gray-900 outline-none focus:bg-white focus:border-brand-500 pr-10">
           <i data-lucide="map-pin" class="w-5 h-5 text-brand-500 absolute right-3 top-3.5"></i>
@@ -233,8 +272,8 @@
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Комментарий для водителя</label>
-        <textarea placeholder="Например: Везд со стороны элеватора, забор проб из бурта" class="w-full border border-gray-200 rounded-2xl p-4 bg-gray-50 text-sm font-medium text-gray-900 outline-none focus:bg-white focus:border-brand-500 h-20 resize-none"></textarea>
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Комментарий для лаборанта</label>
+        <textarea placeholder="Ориентиры проезда к бурту, контакт управляющего" class="w-full border border-gray-200 rounded-2xl p-4 bg-gray-50 text-sm font-medium text-gray-900 outline-none focus:bg-white focus:border-brand-500 h-20 resize-none"></textarea>
       </div>
     </div>
 
@@ -254,28 +293,14 @@
       </span>
     </div>
 
-    <!-- Интерактивная заглушка карты -->
-    <div class="relative w-full h-52 bg-slate-200 rounded-3xl overflow-hidden mb-4 border border-gray-200 shadow-inner flex items-center justify-center">
-      <div class="absolute inset-0 opacity-40 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px]"></div>
-      
-      <!-- Путь машины -->
-      <div class="absolute w-32 h-1 border-b-2 border-dashed border-brand-500 rotate-12"></div>
-      
-      <div class="z-10 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-md flex items-center gap-2 text-xs font-bold text-gray-800">
-        <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Прибытие через ~32 мин
-      </div>
-
-      <!-- Иконка машины -->
-      <div class="absolute bottom-12 right-16 bg-brand-500 text-white p-2 rounded-full shadow-lg animate-bounce">
-        <i data-lucide="car" class="w-5 h-5"></i>
-      </div>
-    </div>
+    <!-- Живая интерактивная карта Leaflet.js -->
+    <div id="map" class="mb-4 border border-gray-200 shadow-sm"></div>
 
     <!-- Карточка лаборанта -->
     <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-700 text-lg">
+          <div class="w-12 h-12 bg-brand-50 rounded-full flex items-center justify-center font-bold text-brand-500 text-lg">
             СВ
           </div>
           <div>
@@ -288,27 +313,27 @@
         </a>
       </div>
 
-      <!-- Таймлайн статуса -->
-      <div class="space-y-3 pt-2 border-t border-gray-100">
+      <!-- Статус-таймлайн -->
+      <div class="space-y-3 pt-3 border-t border-gray-100">
         <div class="flex items-center gap-3 text-xs">
-          <div class="w-2 h-2 rounded-full bg-brand-500"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-brand-500"></div>
           <span class="font-semibold text-gray-900">10:30</span>
-          <span class="text-gray-500">Заявка принята лабораторией</span>
+          <span class="text-gray-500">Заявка принята диспетчером</span>
         </div>
         <div class="flex items-center gap-3 text-xs">
-          <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></div>
           <span class="font-semibold text-brand-500">10:42</span>
           <span class="font-bold text-brand-500">Лаборант выехал на Ток №2</span>
         </div>
         <div class="flex items-center gap-3 text-xs opacity-40">
-          <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
           <span>--:--</span>
-          <span>Экспресс-анализ клейковины и влажности</span>
+          <span>Экспресс-анализ (клейковина, натура, влажность)</span>
         </div>
       </div>
     </div>
 
-    <button onclick="alert('Вызов отменен')" class="w-full bg-red-50 text-red-500 font-bold py-3 rounded-xl text-xs active:scale-[0.98] transition-all">
+    <button onclick="alert('Вызов отменен')" class="w-full bg-red-50 text-red-500 font-bold py-3.5 rounded-xl text-xs active:scale-[0.98] transition-all">
       Отменить вызов
     </button>
   </section>
@@ -317,9 +342,8 @@
   <section id="screen-orders" class="screen hidden min-h-screen">
     <div class="bg-white p-4 sticky top-0 z-10 border-b border-gray-100">
       <h1 class="text-xl font-bold text-gray-900">Мои заявки</h1>
-      <p class="text-xs text-gray-500 mb-3">История вызовов и текущие сделки</p>
+      <p class="text-xs text-gray-500 mb-3">История вызовов лаборатории и сделок</p>
 
-      <!-- Переключатель Активные / Архив -->
       <div class="grid grid-cols-2 bg-gray-100 p-1 rounded-xl gap-1">
         <button onclick="toggleOrdersTab('active')" id="btn-orders-active" class="py-2 text-xs font-bold rounded-lg bg-white text-brand-500 shadow-sm">Активные (2)</button>
         <button onclick="toggleOrdersTab('archive')" id="btn-orders-archive" class="py-2 text-xs font-semibold rounded-lg text-gray-500">Архив (14)</button>
@@ -327,58 +351,45 @@
     </div>
 
     <div class="p-4 space-y-3">
-      <!-- Активная карточка 1 (В пути) -->
+      <!-- Активная 1 -->
       <div class="bg-white rounded-2xl p-4 border-2 border-brand-500 shadow-sm">
         <div class="flex justify-between items-center mb-2">
-          <span class="bg-brand-50 text-brand-500 text-[10px] font-extrabold px-2 py-1 rounded-md flex items-center gap-1">
+          <span class="bg-brand-50 text-brand-500 text-[10px] font-extrabold px-2.5 py-1 rounded-md flex items-center gap-1">
             ● В ПУТИ
           </span>
           <span class="text-xs text-gray-400">Сегодня, 10:30</span>
         </div>
         <h3 class="font-bold text-base text-gray-900 mb-1">ТОО «Рамона»</h3>
-        <p class="text-xs text-gray-500 mb-1">🌾 Пшеница 3 кл. • ~60 тонн</p>
+        <p class="text-xs text-gray-500 mb-1">🌾 Пшеница 3 кл. • 60 тонн</p>
         <p class="text-xs font-medium text-brand-500 mb-3">📍 Ток №2 (Костанайский р-н)</p>
 
-        <div class="flex justify-end">
-          <button onclick="goToScreen('tracking')" class="bg-brand-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1">
+        <div class="flex justify-between items-center pt-2 border-t border-gray-50">
+          <span class="text-xs font-bold text-gray-900">Выплата: 5 490 000 ₸</span>
+          <button onclick="goToScreen('tracking')" class="bg-brand-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1 shadow-sm">
             Карта <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
         </div>
       </div>
 
-      <!-- Активная карточка 2 (Ждет решения) -->
+      <!-- Активная 2 -->
       <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
         <div class="flex justify-between items-center mb-2">
-          <span class="bg-amber-50 text-amber-600 text-[10px] font-extrabold px-2 py-1 rounded-md">
+          <span class="bg-amber-50 text-amber-600 text-[10px] font-extrabold px-2.5 py-1 rounded-md">
             ● ЖДЕТ РЕШЕНИЯ
           </span>
           <span class="text-xs text-gray-400">Вчера, 16:40</span>
         </div>
         <h3 class="font-bold text-base text-gray-900 mb-1">Мельница «Костанай-Ун»</h3>
         <p class="text-xs text-gray-500 mb-3">🌾 Ячмень • 120 тонн</p>
-        
+
         <div class="flex items-center justify-between border-t border-gray-50 pt-3">
           <div>
             <span class="text-xs text-gray-400">Оффер: </span>
-            <span class="text-sm font-extrabold text-gray-900">91 500 ₸/т</span>
+            <span class="text-sm font-extrabold text-gray-900">7 740 000 ₸</span>
           </div>
           <button class="bg-brand-50 text-brand-500 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1">
             Смотреть <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
-        </div>
-      </div>
-
-      <!-- Секция завершенные -->
-      <div class="pt-2">
-        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Недавно завершенные</h4>
-        <div class="bg-white rounded-2xl p-4 border border-gray-100 flex justify-between items-center">
-          <div>
-            <h5 class="font-bold text-sm text-gray-900">Мукомольный комбинат №1</h5>
-            <p class="text-xs text-gray-400">Пшеница • 50 тонн • Сделка закрыта</p>
-          </div>
-          <span class="text-xs font-bold text-brand-500 flex items-center gap-1">
-            ✓ Завершено
-          </span>
         </div>
       </div>
     </div>
@@ -387,19 +398,17 @@
   <!-- ================= 7. ЦЕНТР ПОДДЕРЖКИ ================= -->
   <section id="screen-support" class="screen hidden min-h-screen p-4">
     <h1 class="text-xl font-bold text-gray-900 mb-1">Центр поддержки</h1>
-    <p class="text-xs text-gray-500 mb-4">Мы всегда на связи, чтобы помочь со сделкой</p>
+    <p class="text-xs text-gray-500 mb-4">Круглосуточный диспетчер и арбитраж сделок</p>
 
-    <!-- Зеленый баннер горячей линии -->
     <div class="bg-brand-500 text-white rounded-3xl p-5 mb-5 shadow-lg shadow-brand-500/20">
       <h3 class="font-bold text-base mb-1">Горячая линия агро-диспетчера</h3>
-      <p class="text-xs opacity-80 mb-4">Решение спорных вопросов по качеству и выездам</p>
+      <p class="text-xs opacity-80 mb-4">Решение споров по клейковине и расхождениям веса</p>
 
       <a href="tel:+77142990011" class="inline-flex items-center gap-2 bg-white text-brand-500 font-extrabold text-sm px-4 py-3 rounded-xl shadow-sm active:scale-95 transition-all">
         <i data-lucide="phone-call" class="w-4 h-4"></i> +7 (7142) 99-00-11
       </a>
     </div>
 
-    <!-- Быстрая связь -->
     <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Быстрая связь</h4>
     <div class="grid grid-cols-2 gap-3 mb-6">
       <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm active:bg-gray-50">
@@ -419,24 +428,7 @@
       </div>
     </div>
 
-    <!-- Частые вопросы -->
-    <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Частые вопросы</h4>
-    <div class="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 mb-6">
-      <div class="p-4 flex justify-between items-center text-xs font-bold text-gray-800">
-        <span>Как проходит экспресс-анализ в поле?</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-      </div>
-      <div class="p-4 flex justify-between items-center text-xs font-bold text-gray-800">
-        <span>Что делать, если не согласен с клейковиной?</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-      </div>
-      <div class="p-4 flex justify-between items-center text-xs font-bold text-gray-800">
-        <span>Кто оплачивает транспортировку?</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-      </div>
-    </div>
-
-    <p class="text-center text-[10px] text-gray-400 mb-4">ЗЕРНО.ФЕРМЕР v1.0.4 (Костанай)</p>
+    <p class="text-center text-[10px] text-gray-400 mb-4">ЗЕРНО.ФЕРМЕР v1.1.0 (Костанай)</p>
   </section>
 
   <!-- ================= BOTTOM NAVIGATION BAR ================= -->
@@ -466,13 +458,16 @@
       tg.ready();
     }
 
+    let currentPricePerTon = 91500;
+    let currentSpreadPerTon = 500;
+    let mapInstance = null;
+
     // Переключение экранов
     function goToScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       const target = document.getElementById('screen-' + screenId);
       if (target) target.classList.remove('hidden');
 
-      // Показ/скрытие нижнего бара
       const bottomBar = document.getElementById('bottom-bar');
       if (screenId === 'auth' || screenId === 'profile' || screenId === 'lab-request') {
         bottomBar.classList.add('hidden');
@@ -480,17 +475,18 @@
         bottomBar.classList.remove('hidden');
       }
 
-      // Обновление иконок навигации
       updateNavState(screenId);
 
-      // Вибрация Telegram
       if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
       }
 
-      // Обновить иконки Lucide
       lucide.createIcons();
       window.scrollTo(0, 0);
+
+      if (screenId === 'tracking') {
+        setTimeout(initMap, 200);
+      }
     }
 
     function updateNavState(screenId) {
@@ -513,21 +509,52 @@
       }
     }
 
-    function openRequestForm(millName, crop) {
+    function openRequestForm(millName, crop, price, spread) {
+      currentPricePerTon = price;
+      currentSpreadPerTon = spread;
       document.getElementById('selected-mill-title').innerText = millName;
-      document.getElementById('selected-crop-title').innerText = crop;
+      document.getElementById('selected-crop-title').innerText = crop + ' • ' + price.toLocaleString() + ' ₸/т';
+      calculateDeal();
       goToScreen('lab-request');
     }
 
     function setVolume(vol) {
       document.getElementById('volume-input').value = vol;
+      calculateDeal();
+    }
+
+    // Автоматический калькулятор выплаты и комиссии
+    function calculateDeal() {
+      const volume = parseFloat(document.getElementById('volume-input').value) || 0;
+      const farmerPayout = volume * currentPricePerTon;
+      const serviceFee = volume * currentSpreadPerTon;
+
+      document.getElementById('calc-farmer-payout').innerText = farmerPayout.toLocaleString() + ' ₸';
+      document.getElementById('calc-service-fee').innerText = serviceFee.toLocaleString() + ' ₸';
+    }
+
+    // Запрос GPS геолокации
+    function getGPSLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude.toFixed(4);
+            const lng = position.coords.longitude.toFixed(4);
+            document.getElementById('location-input').value = `GPS: ${lat}, ${lng} (Костанайская обл.)`;
+          },
+          () => {
+            alert('Не удалось определить GPS. Введите адрес вручную.');
+          }
+        );
+      }
     }
 
     function submitLabRequest() {
+      const msg = 'Заявка принята! Лаборант выезжает на указанный ток.';
       if (tg && tg.showAlert) {
-        tg.showAlert('Заявка принята! Лаборант выезжает на указанный ток.');
+        tg.showAlert(msg);
       } else {
-        alert('Заявка принята! Лаборант выезжает на указанный ток.');
+        alert(msg);
       }
       goToScreen('tracking');
     }
@@ -552,7 +579,23 @@
       }
     }
 
-    // Первый запуск — стартуем с Главного экрана (Мельницы)
+    // Инициализация живой карты Leaflet
+    function initMap() {
+      if (mapInstance) return;
+      // Координаты района Костаная
+      const tokCoords = [53.1850, 63.6300];
+      const labCoords = [53.2100, 63.6000];
+
+      mapInstance = L.map('map').setView(tokCoords, 11);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+      }).addTo(mapInstance);
+
+      L.marker(tokCoords).addTo(mapInstance).bindPopup('Ток №2 (Фермер)').openPopup();
+      L.marker(labCoords).addTo(mapInstance).bindPopup('Лаборант (В пути)');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       goToScreen('mills');
     });
