@@ -411,38 +411,60 @@
       const volume = parseInt(document.getElementById('volume-input').value) || 60;
 
       try {
-        await supabaseClient.from('users').upsert({
+        // 1. Создаем или обновляем профиль пользователя в Supabase
+        const userPayload = {
           id: currentTelegramUser.id,
-          first_name: currentTelegramUser.first_name,
+          first_name: currentTelegramUser.first_name || 'Фермер',
           last_name: currentTelegramUser.last_name || '',
           username: currentTelegramUser.username || '',
-          farm_name: document.getElementById('profile-name').value || 'КХ',
-          district: document.getElementById('profile-district').value || 'Костанайский р-н'
-        });
+          farm_name: document.getElementById('profile-name') ? document.getElementById('profile-name').value : 'КХ',
+          district: document.getElementById('profile-district') ? document.getElementById('profile-district').value : 'Костанайский р-н'
+        };
 
-        const { data, error } = await supabaseClient
+        const { error: userErr } = await supabaseClient
+          .from('users')
+          .upsert(userPayload, { onConflict: 'id' });
+
+        if (userErr) {
+          console.warn('Предупреждение при записи пользователя:', userErr);
+        }
+
+        // 2. Формируем и отправляем заявку в таблицу orders
+        const orderPayload = {
+          user_id: currentTelegramUser.id,
+          crop: selectedCropName || 'Пшеница 3 кл.',
+          volume: volume,
+          status: 'pending'
+        };
+
+        if (selectedMillId) {
+          orderPayload.mill_id = selectedMillId;
+        }
+
+        const { data, error: orderErr } = await supabaseClient
           .from('orders')
-          .insert([
-            {
-              user_id: currentTelegramUser.id,
-              mill_id: selectedMillId,
-              crop: selectedCropName,
-              volume: volume,
-              status: 'pending'
-            }
-          ]);
+          .insert([orderPayload]);
 
-        if (error) throw error;
+        if (orderErr) {
+          console.error('Ошибка сохранения заказа:', orderErr);
+          alert('Ошибка базы данных: ' + (orderErr.message || JSON.stringify(orderErr)));
+          return;
+        }
 
+        // 3. Уведомление об успехе
         if (tg && tg.showAlert) {
-          tg.showAlert('Заявка успешно создана в базе! Лаборант уведомлен.');
+          tg.showAlert('Заявка успешно создана!');
+        } else {
+          alert('Заявка успешно создана!');
         }
 
         goToScreen('tracking');
-      } catch (error) {
-        console.error('Ошибка создания заявки:', error);
-        alert('Ошибка отправки заявки. Проверьте соединение.');
+
+      } catch (err) {
+        console.error('Непредвиденная ошибка:', err);
+        alert('Произошла ошибка при отправке заявки.');
       } finally {
+        // Всегда возвращаем кнопку в исходное состояние
         btn.innerText = 'Подтвердить и вызвать';
         btn.disabled = false;
       }
