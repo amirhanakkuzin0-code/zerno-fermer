@@ -8,6 +8,9 @@
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -148,70 +151,9 @@
       </div>
     </div>
 
-    <div class="p-4 space-y-4">
-
-      <!-- Карточка Мельницы 1 -->
-      <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex justify-between items-start mb-2">
-          <div>
-            <h3 class="font-bold text-base text-gray-900">ТОО «Рамона»</h3>
-            <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> Костанайский р-н (п. Заречное)
-            </p>
-          </div>
-          <span class="bg-green-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-md">Приемка 24/7</span>
-        </div>
-
-        <!-- Блок Цены с комиссией -->
-        <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-xs text-gray-500">Пшеница 3 кл. (Клейк. 25+)</span>
-            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Цена гарантирована</span>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span class="text-2xl font-extrabold text-brand-500">91 500 ₸</span>
-            <span class="text-xs font-medium text-gray-400">/ тонна</span>
-          </div>
-          <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-            <i data-lucide="info" class="w-3 h-3"></i> Базовая цена мельницы: 92 000 ₸ (Спред 500 ₸/т)
-          </div>
-        </div>
-
-        <button onclick="openRequestForm('ТОО «Рамона»', 'Пшеница 3 кл.', 91500, 500)" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
-          <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
-        </button>
-      </div>
-
-      <!-- Карточка Мельницы 2 -->
-      <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex justify-between items-start mb-2">
-          <div>
-            <h3 class="font-bold text-base text-gray-900">Мельница «Костанай-Ун»</h3>
-            <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> г. Костанай, ул. Элеваторная
-            </p>
-          </div>
-          <span class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2.5 py-1 rounded-md">Очередь ~2 авто</span>
-        </div>
-
-        <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-xs text-gray-500">Ячмень фуражный</span>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <span class="text-2xl font-extrabold text-gray-900">64 500 ₸</span>
-            <span class="text-xs font-medium text-gray-400">/ тонна</span>
-          </div>
-          <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-            <i data-lucide="info" class="w-3 h-3"></i> Базовая цена мельницы: 65 000 ₸ (Спред 500 ₸/т)
-          </div>
-        </div>
-
-        <button onclick="openRequestForm('Мельница «Костанай-Ун»', 'Ячмень', 64500, 500)" class="w-full bg-brand-50 text-brand-500 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-          <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
-        </button>
-      </div>
-
+    <!-- КОНТЕЙНЕР ДЛЯ КАРТОЧЕК МЕЛЬНИЦ С АВТОЗАГРУЗКОЙ -->
+    <div id="mills-list" class="p-4 space-y-4">
+      <div class="text-center text-gray-400 py-8 text-sm">Загрузка мельниц из базы данных...</div>
     </div>
   </section>
 
@@ -449,8 +391,13 @@
     </button>
   </nav>
 
-  <!-- JavaScript Логика -->
+  <!-- JavaScript Логика + Подключение Supabase -->
   <script>
+    // 1. Настройки подключения к Supabase
+    const SUPABASE_URL = 'https://itmswhovyndnczeavtev.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2';
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     // Инициализация Telegram WebApp
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
@@ -461,6 +408,69 @@
     let currentPricePerTon = 91500;
     let currentSpreadPerTon = 500;
     let mapInstance = null;
+
+    // Загрузка мельниц из базы Supabase
+    async function fetchRealMills() {
+      const container = document.getElementById('mills-list');
+      if (!container || !supabaseClient) return;
+
+      const { data: mills, error } = await supabaseClient
+        .from('mills')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Ошибка загрузки данных из Supabase:', error);
+        container.innerHTML = `<div class="text-center text-red-500 py-8 text-sm">Не удалось загрузить данные из базы.</div>`;
+        return;
+      }
+
+      if (!mills || mills.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Активных мельниц не найдено.</div>`;
+        return;
+      }
+
+      container.innerHTML = ''; // Очищаем спиннер/прелоадер
+
+      // Отрисовка карточек из базы
+      mills.forEach(mill => {
+        const netPrice = mill.price - mill.spread;
+        
+        container.innerHTML += `
+          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="font-bold text-base text-gray-900">${mill.name}</h3>
+                <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> ${mill.location}
+                </p>
+              </div>
+              <span class="bg-green-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-md">${mill.queue_info || 'Приемка 24/7'}</span>
+            </div>
+
+            <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-gray-500">${mill.crop}</span>
+                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Цена гарантирована</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-brand-500">${netPrice.toLocaleString('ru-RU')} ₸</span>
+                <span class="text-xs font-medium text-gray-400">/ тонна</span>
+              </div>
+              <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+                <i data-lucide="info" class="w-3 h-3"></i> Базовая цена мельницы: ${mill.price.toLocaleString('ru-RU')} ₸ (Спред ${mill.spread} ₸/т)
+              </div>
+            </div>
+
+            <button onclick="openRequestForm('${mill.name}', '${mill.crop}', ${netPrice}, ${mill.spread})" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
+              <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
+            </button>
+          </div>
+        `;
+      });
+
+      lucide.createIcons();
+    }
 
     // Переключение экранов
     function goToScreen(screenId) {
@@ -513,7 +523,7 @@
       currentPricePerTon = price;
       currentSpreadPerTon = spread;
       document.getElementById('selected-mill-title').innerText = millName;
-      document.getElementById('selected-crop-title').innerText = crop + ' • ' + price.toLocaleString() + ' ₸/т';
+      document.getElementById('selected-crop-title').innerText = crop + ' • ' + price.toLocaleString('ru-RU') + ' ₸/т';
       calculateDeal();
       goToScreen('lab-request');
     }
@@ -529,8 +539,8 @@
       const farmerPayout = volume * currentPricePerTon;
       const serviceFee = volume * currentSpreadPerTon;
 
-      document.getElementById('calc-farmer-payout').innerText = farmerPayout.toLocaleString() + ' ₸';
-      document.getElementById('calc-service-fee').innerText = serviceFee.toLocaleString() + ' ₸';
+      document.getElementById('calc-farmer-payout').innerText = farmerPayout.toLocaleString('ru-RU') + ' ₸';
+      document.getElementById('calc-service-fee').innerText = serviceFee.toLocaleString('ru-RU') + ' ₸';
     }
 
     // Запрос GPS геолокации
@@ -582,7 +592,6 @@
     // Инициализация живой карты Leaflet
     function initMap() {
       if (mapInstance) return;
-      // Координаты района Костаная
       const tokCoords = [53.1850, 63.6300];
       const labCoords = [53.2100, 63.6000];
 
@@ -598,6 +607,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       goToScreen('mills');
+      fetchRealMills();
     });
   </script>
 </body>
