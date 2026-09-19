@@ -115,7 +115,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Основной район полей</label>
-          <select class="w-full border border-gray-200 rounded-2xl px-4 py-3.5 bg-gray-50 outline-none focus:bg-white focus:border-brand-500 font-semibold text-gray-900">
+          <select id="profile-district" class="w-full border border-gray-200 rounded-2xl px-4 py-3.5 bg-gray-50 outline-none focus:bg-white focus:border-brand-500 font-semibold text-gray-900">
             <option>Костанайский р-н</option>
             <option>Федоровский р-н</option>
             <option>Мендыкаринский р-н</option>
@@ -125,7 +125,7 @@
       </div>
     </div>
 
-    <button onclick="goToScreen('mills')" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all">
+    <button onclick="saveProfile()" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all">
       Сохранить и продолжить
     </button>
   </section>
@@ -215,11 +215,11 @@
 
       <div>
         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Комментарий для лаборанта</label>
-        <textarea placeholder="Ориентиры проезда к бурту, контакт управляющего" class="w-full border border-gray-200 rounded-2xl p-4 bg-gray-50 text-sm font-medium text-gray-900 outline-none focus:bg-white focus:border-brand-500 h-20 resize-none"></textarea>
+        <textarea id="comment-input" placeholder="Ориентиры проезда к бурту, контакт управляющего" class="w-full border border-gray-200 rounded-2xl p-4 bg-gray-50 text-sm font-medium text-gray-900 outline-none focus:bg-white focus:border-brand-500 h-20 resize-none"></textarea>
       </div>
     </div>
 
-    <button onclick="submitLabRequest()" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
+    <button onclick="submitLabRequest()" id="btn-submit-order" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
       <i data-lucide="navigation" class="w-5 h-5"></i> Подтвердить и вызвать
     </button>
   </section>
@@ -247,7 +247,7 @@
           </div>
           <div>
             <h3 class="font-bold text-base text-gray-900">Сергей В.</h3>
-            <p class="text-xs text-gray-500">Лаборант-эксперт ТОО «Рамона»</p>
+            <p class="text-xs text-gray-500">Лаборант-эксперт</p>
           </div>
         </div>
         <a href="tel:+77050000000" class="w-10 h-10 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center">
@@ -259,24 +259,19 @@
       <div class="space-y-3 pt-3 border-t border-gray-100">
         <div class="flex items-center gap-3 text-xs">
           <div class="w-2.5 h-2.5 rounded-full bg-brand-500"></div>
-          <span class="font-semibold text-gray-900">10:30</span>
-          <span class="text-gray-500">Заявка принята диспетчером</span>
+          <span class="font-semibold text-gray-900">Заявка в базе</span>
+          <span class="text-gray-500">Принята системой</span>
         </div>
         <div class="flex items-center gap-3 text-xs">
           <div class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></div>
-          <span class="font-semibold text-brand-500">10:42</span>
-          <span class="font-bold text-brand-500">Лаборант выехал на Ток №2</span>
-        </div>
-        <div class="flex items-center gap-3 text-xs opacity-40">
-          <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-          <span>--:--</span>
-          <span>Экспресс-анализ (клейковина, натура, влажность)</span>
+          <span class="font-bold text-brand-500">Лаборант назначается</span>
+          <span class="text-brand-500 font-semibold">Выезд на ток</span>
         </div>
       </div>
     </div>
 
-    <button onclick="alert('Вызов отменен')" class="w-full bg-red-50 text-red-500 font-bold py-3.5 rounded-xl text-xs active:scale-[0.98] transition-all">
-      Отменить вызов
+    <button onclick="goToScreen('orders')" class="w-full bg-gray-100 text-gray-700 font-bold py-3.5 rounded-xl text-xs active:scale-[0.98] transition-all">
+      Перейти к моим заявкам
     </button>
   </section>
 
@@ -284,56 +279,11 @@
   <section id="screen-orders" class="screen hidden min-h-screen">
     <div class="bg-white p-4 sticky top-0 z-10 border-b border-gray-100">
       <h1 class="text-xl font-bold text-gray-900">Мои заявки</h1>
-      <p class="text-xs text-gray-500 mb-3">История вызовов лаборатории и сделок</p>
-
-      <div class="grid grid-cols-2 bg-gray-100 p-1 rounded-xl gap-1">
-        <button onclick="toggleOrdersTab('active')" id="btn-orders-active" class="py-2 text-xs font-bold rounded-lg bg-white text-brand-500 shadow-sm">Активные (2)</button>
-        <button onclick="toggleOrdersTab('archive')" id="btn-orders-archive" class="py-2 text-xs font-semibold rounded-lg text-gray-500">Архив (14)</button>
-      </div>
+      <p class="text-xs text-gray-500 mb-3">История вызовов лаборатории и сделок из Supabase</p>
     </div>
 
-    <div class="p-4 space-y-3">
-      <!-- Активная 1 -->
-      <div class="bg-white rounded-2xl p-4 border-2 border-brand-500 shadow-sm">
-        <div class="flex justify-between items-center mb-2">
-          <span class="bg-brand-50 text-brand-500 text-[10px] font-extrabold px-2.5 py-1 rounded-md flex items-center gap-1">
-            ● В ПУТИ
-          </span>
-          <span class="text-xs text-gray-400">Сегодня, 10:30</span>
-        </div>
-        <h3 class="font-bold text-base text-gray-900 mb-1">ТОО «Рамона»</h3>
-        <p class="text-xs text-gray-500 mb-1">🌾 Пшеница 3 кл. • 60 тонн</p>
-        <p class="text-xs font-medium text-brand-500 mb-3">📍 Ток №2 (Костанайский р-н)</p>
-
-        <div class="flex justify-between items-center pt-2 border-t border-gray-50">
-          <span class="text-xs font-bold text-gray-900">Выплата: 5 490 000 ₸</span>
-          <button onclick="goToScreen('tracking')" class="bg-brand-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1 shadow-sm">
-            Карта <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Активная 2 -->
-      <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex justify-between items-center mb-2">
-          <span class="bg-amber-50 text-amber-600 text-[10px] font-extrabold px-2.5 py-1 rounded-md">
-            ● ЖДЕТ РЕШЕНИЯ
-          </span>
-          <span class="text-xs text-gray-400">Вчера, 16:40</span>
-        </div>
-        <h3 class="font-bold text-base text-gray-900 mb-1">Мельница «Костанай-Ун»</h3>
-        <p class="text-xs text-gray-500 mb-3">🌾 Ячмень • 120 тонн</p>
-
-        <div class="flex items-center justify-between border-t border-gray-50 pt-3">
-          <div>
-            <span class="text-xs text-gray-400">Оффер: </span>
-            <span class="text-sm font-extrabold text-gray-900">7 740 000 ₸</span>
-          </div>
-          <button class="bg-brand-50 text-brand-500 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1">
-            Смотреть <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-      </div>
+    <div id="orders-list" class="p-4 space-y-3">
+      <div class="text-center text-gray-400 py-8 text-sm">Загрузка ваших заявок...</div>
     </div>
   </section>
 
@@ -351,26 +301,7 @@
       </a>
     </div>
 
-    <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Быстрая связь</h4>
-    <div class="grid grid-cols-2 gap-3 mb-6">
-      <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm active:bg-gray-50">
-        <div class="flex items-center gap-2 mb-1">
-          <i data-lucide="message-square" class="w-4 h-4 text-emerald-500"></i>
-          <span class="font-bold text-sm text-gray-900">WhatsApp</span>
-        </div>
-        <p class="text-[10px] text-gray-400">Ответ за 2 мин</p>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm active:bg-gray-50">
-        <div class="flex items-center gap-2 mb-1">
-          <i data-lucide="send" class="w-4 h-4 text-sky-500"></i>
-          <span class="font-bold text-sm text-gray-900">Telegram</span>
-        </div>
-        <p class="text-[10px] text-gray-400">Чат-бот 24/7</p>
-      </div>
-    </div>
-
-    <p class="text-center text-[10px] text-gray-400 mb-4">ЗЕРНО.ФЕРМЕР v1.1.0 (Костанай)</p>
+    <p class="text-center text-[10px] text-gray-400 mb-4">ЗЕРНО.ФЕРМЕР v1.2.0 (Костанай)</p>
   </section>
 
   <!-- ================= BOTTOM NAVIGATION BAR ================= -->
@@ -380,7 +311,7 @@
       <span class="text-[10px] font-bold">Мельницы</span>
     </button>
 
-    <button onclick="goToScreen('orders')" class="nav-btn flex flex-col items-center gap-0.5 text-gray-400 hover:text-gray-600">
+    <button onclick="goToScreen('orders'); fetchUserOrders();" class="nav-btn flex flex-col items-center gap-0.5 text-gray-400 hover:text-gray-600">
       <i data-lucide="clipboard-list" class="w-5 h-5"></i>
       <span class="text-[10px] font-medium">Заявки</span>
     </button>
@@ -391,25 +322,33 @@
     </button>
   </nav>
 
-  <!-- JavaScript Логика + Подключение Supabase -->
+  <!-- JavaScript Логика -->
   <script>
-    // 1. Настройки подключения к Supabase
     const SUPABASE_URL = 'https://itmswhovyndnczeavtev.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2';
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // Инициализация Telegram WebApp
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
       tg.expand();
       tg.ready();
     }
 
+    // Данные Telegram пользователя
+    const currentTelegramUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : {
+      id: 999888777,
+      first_name: 'Фермер',
+      last_name: 'Костанай',
+      username: 'farmer_kst'
+    };
+
+    let selectedMillId = null;
     let currentPricePerTon = 91500;
     let currentSpreadPerTon = 500;
+    let selectedCropName = '';
     let mapInstance = null;
 
-    // Загрузка мельниц из базы Supabase
+    // 1. Загрузка мельниц из базы Supabase
     async function fetchRealMills() {
       const container = document.getElementById('mills-list');
       if (!container || !supabaseClient) return;
@@ -419,23 +358,15 @@
         .select('*')
         .eq('is_active', true);
 
-      if (error) {
-        console.error('Ошибка загрузки данных из Supabase:', error);
-        container.innerHTML = `<div class="text-center text-red-500 py-8 text-sm">Не удалось загрузить данные из базы.</div>`;
+      if (error || !mills || mills.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Мельницы временно недоступны</div>`;
         return;
       }
 
-      if (!mills || mills.length === 0) {
-        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Активных мельниц не найдено.</div>`;
-        return;
-      }
+      container.innerHTML = '';
 
-      container.innerHTML = ''; // Очищаем спиннер/прелоадер
-
-      // Отрисовка карточек из базы
       mills.forEach(mill => {
         const netPrice = mill.price - mill.spread;
-        
         container.innerHTML += `
           <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4">
             <div class="flex justify-between items-start mb-2">
@@ -457,12 +388,9 @@
                 <span class="text-2xl font-extrabold text-brand-500">${netPrice.toLocaleString('ru-RU')} ₸</span>
                 <span class="text-xs font-medium text-gray-400">/ тонна</span>
               </div>
-              <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-                <i data-lucide="info" class="w-3 h-3"></i> Базовая цена мельницы: ${mill.price.toLocaleString('ru-RU')} ₸ (Спред ${mill.spread} ₸/т)
-              </div>
             </div>
 
-            <button onclick="openRequestForm('${mill.name}', '${mill.crop}', ${netPrice}, ${mill.spread})" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
+            <button onclick="openRequestForm(${mill.id}, '${mill.name}', '${mill.crop}', ${netPrice}, ${mill.spread})" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
               <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
             </button>
           </div>
@@ -472,7 +400,90 @@
       lucide.createIcons();
     }
 
-    // Переключение экранов
+    // 2. Отправка заявки в базу Supabase (таблица orders)
+    async function submitLabRequest() {
+      const btn = document.getElementById('btn-submit-order');
+      btn.innerText = 'Сохранение заявки...';
+      btn.disabled = true;
+
+      const volume = parseInt(document.getElementById('volume-input').value) || 60;
+
+      // Сначала сохраняем/обновляем пользователя в таблице users
+      await supabaseClient.from('users').upsert({
+        id: currentTelegramUser.id,
+        first_name: currentTelegramUser.first_name,
+        last_name: currentTelegramUser.last_name || '',
+        username: currentTelegramUser.username || '',
+        farm_name: document.getElementById('profile-name').value || 'КХ',
+        district: document.getElementById('profile-district').value || 'Костанайский р-н'
+      });
+
+      // Создаем новую запись в orders
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .insert([
+          {
+            user_id: currentTelegramUser.id,
+            mill_id: selectedMillId,
+            crop: selectedCropName,
+            volume: volume,
+            status: 'pending'
+          }
+        ]);
+
+      btn.innerText = 'Подтвердить и вызвать';
+      btn.disabled = false;
+
+      if (error) {
+        console.error('Ошибка создания заявки:', error);
+        alert('Ошибка отправки заявки. Проверьте соединение.');
+        return;
+      }
+
+      if (tg && tg.showAlert) {
+        tg.showAlert('Заявка успешно создана в базе! Лаборант уведомлен.');
+      }
+
+      goToScreen('tracking');
+    }
+
+    // 3. Загрузка заявок пользователя из Supabase
+    async function fetchUserOrders() {
+      const container = document.getElementById('orders-list');
+      if (!container || !supabaseClient) return;
+
+      const { data: orders, error } = await supabaseClient
+        .from('orders')
+        .select('*, mills(name, location)')
+        .eq('user_id', currentTelegramUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error || !orders || orders.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">У вас пока нет активных заявок</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+
+      orders.forEach(ord => {
+        const millName = ord.mills ? ord.mills.name : 'Элеватор';
+        
+        container.innerHTML += `
+          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+              <span class="bg-brand-50 text-brand-500 text-[10px] font-extrabold px-2.5 py-1 rounded-md">
+                ● ${ord.status.toUpperCase()}
+              </span>
+              <span class="text-xs text-gray-400">${new Date(ord.created_at).toLocaleDateString('ru-RU')}</span>
+            </div>
+            <h3 class="font-bold text-base text-gray-900 mb-1">${millName}</h3>
+            <p class="text-xs text-gray-500 mb-2">🌾 ${ord.crop} • ${ord.volume} тонн</p>
+          </div>
+        `;
+      });
+    }
+
+    // Навигация и интерфейс
     function goToScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       const target = document.getElementById('screen-' + screenId);
@@ -486,11 +497,6 @@
       }
 
       updateNavState(screenId);
-
-      if (tg && tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('light');
-      }
-
       lucide.createIcons();
       window.scrollTo(0, 0);
 
@@ -503,7 +509,6 @@
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('text-brand-500');
         btn.classList.add('text-gray-400');
-        btn.querySelector('span').classList.remove('font-bold');
       });
 
       let navIndex = -1;
@@ -515,13 +520,15 @@
         const activeBtn = document.querySelectorAll('.nav-btn')[navIndex];
         activeBtn.classList.remove('text-gray-400');
         activeBtn.classList.add('text-brand-500');
-        activeBtn.querySelector('span').classList.add('font-bold');
       }
     }
 
-    function openRequestForm(millName, crop, price, spread) {
+    function openRequestForm(millId, millName, crop, price, spread) {
+      selectedMillId = millId;
+      selectedCropName = crop;
       currentPricePerTon = price;
       currentSpreadPerTon = spread;
+
       document.getElementById('selected-mill-title').innerText = millName;
       document.getElementById('selected-crop-title').innerText = crop + ' • ' + price.toLocaleString('ru-RU') + ' ₸/т';
       calculateDeal();
@@ -533,7 +540,6 @@
       calculateDeal();
     }
 
-    // Автоматический калькулятор выплаты и комиссии
     function calculateDeal() {
       const volume = parseFloat(document.getElementById('volume-input').value) || 0;
       const farmerPayout = volume * currentPricePerTon;
@@ -543,66 +549,24 @@
       document.getElementById('calc-service-fee').innerText = serviceFee.toLocaleString('ru-RU') + ' ₸';
     }
 
-    // Запрос GPS геолокации
     function getGPSLocation() {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude.toFixed(4);
-            const lng = position.coords.longitude.toFixed(4);
-            document.getElementById('location-input').value = `GPS: ${lat}, ${lng} (Костанайская обл.)`;
-          },
-          () => {
-            alert('Не удалось определить GPS. Введите адрес вручную.');
-          }
-        );
+        navigator.geolocation.getCurrentPosition((pos) => {
+          document.getElementById('location-input').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+        });
       }
     }
 
-    function submitLabRequest() {
-      const msg = 'Заявка принята! Лаборант выезжает на указанный ток.';
-      if (tg && tg.showAlert) {
-        tg.showAlert(msg);
-      } else {
-        alert(msg);
-      }
-      goToScreen('tracking');
-    }
-
-    function selectRole(btn) {
-      document.querySelectorAll('.role-btn').forEach(b => {
-        b.className = 'role-btn border-2 border-gray-100 bg-gray-50 text-gray-600 font-medium py-3 px-4 rounded-xl text-sm';
-      });
-      btn.className = 'role-btn active border-2 border-brand-500 bg-brand-50 text-brand-500 font-bold py-3 px-4 rounded-xl text-sm';
-    }
-
-    function toggleOrdersTab(tab) {
-      const activeBtn = document.getElementById('btn-orders-active');
-      const archiveBtn = document.getElementById('btn-orders-archive');
-
-      if (tab === 'active') {
-        activeBtn.className = 'py-2 text-xs font-bold rounded-lg bg-white text-brand-500 shadow-sm';
-        archiveBtn.className = 'py-2 text-xs font-semibold rounded-lg text-gray-500';
-      } else {
-        archiveBtn.className = 'py-2 text-xs font-bold rounded-lg bg-white text-brand-500 shadow-sm';
-        activeBtn.className = 'py-2 text-xs font-semibold rounded-lg text-gray-500';
-      }
-    }
-
-    // Инициализация живой карты Leaflet
     function initMap() {
       if (mapInstance) return;
       const tokCoords = [53.1850, 63.6300];
-      const labCoords = [53.2100, 63.6000];
-
       mapInstance = L.map('map').setView(tokCoords, 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+      L.marker(tokCoords).addTo(mapInstance).bindPopup('Ваш ток').openPopup();
+    }
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-      }).addTo(mapInstance);
-
-      L.marker(tokCoords).addTo(mapInstance).bindPopup('Ток №2 (Фермер)').openPopup();
-      L.marker(labCoords).addTo(mapInstance).bindPopup('Лаборант (В пути)');
+    function saveProfile() {
+      goToScreen('mills');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
