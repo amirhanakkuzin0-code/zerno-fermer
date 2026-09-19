@@ -411,7 +411,7 @@
       const volume = parseInt(document.getElementById('volume-input').value) || 60;
 
       try {
-        // 1. Создаем или обновляем профиль пользователя в Supabase
+        // 1. Запись/обновление пользователя
         const userPayload = {
           id: currentTelegramUser.id,
           first_name: currentTelegramUser.first_name || 'Фермер',
@@ -426,10 +426,11 @@
           .upsert(userPayload, { onConflict: 'id' });
 
         if (userErr) {
-          console.warn('Предупреждение при записи пользователя:', userErr);
+          alert('Ошибка при сохранении профиля: ' + userErr.message);
+          return; // Прерываем выполнение, чтобы увидеть точную причину
         }
 
-        // 2. Формируем и отправляем заявку в таблицу orders
+        // 2. Формирование и отправка заказа
         const orderPayload = {
           user_id: currentTelegramUser.id,
           crop: selectedCropName || 'Пшеница 3 кл.',
@@ -446,12 +447,11 @@
           .insert([orderPayload]);
 
         if (orderErr) {
-          console.error('Ошибка сохранения заказа:', orderErr);
-          alert('Ошибка базы данных: ' + (orderErr.message || JSON.stringify(orderErr)));
+          alert('Ошибка сохранения заказа в Supabase: ' + orderErr.message + (orderErr.details ? ' (Детали: ' + orderErr.details + ')' : ''));
           return;
         }
 
-        // 3. Уведомление об успехе
+        // 3. Успех
         if (tg && tg.showAlert) {
           tg.showAlert('Заявка успешно создана!');
         } else {
@@ -461,10 +461,8 @@
         goToScreen('tracking');
 
       } catch (err) {
-        console.error('Непредвиденная ошибка:', err);
-        alert('Произошла ошибка при отправке заявки.');
+        alert('Исключение JS: ' + err.message);
       } finally {
-        // Всегда возвращаем кнопку в исходное состояние
         btn.innerText = 'Подтвердить и вызвать';
         btn.disabled = false;
       }
