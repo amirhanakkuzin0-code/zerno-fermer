@@ -408,7 +408,7 @@
       }
     }
 
-    // Отправка мгновенного уведомления администратору в Telegram
+    // Отправка мгновенного уведомления администратору в Telegram с интерактивными кнопками
     async function sendTelegramNotification(orderData) {
       const message = `🚨 <b>НОВАЯ ЗАЯВКА НА ТОК!</b>\n\n` +
                       `🏢 <b>Покупатель:</b> ${orderData.mill_name}\n` +
@@ -419,6 +419,28 @@
                       `👤 <b>Фермер:</b> ${orderData.user_name} (@${orderData.username})\n` +
                       `📱 <b>Телефон:</b> ${orderData.phone}`;
 
+      // Формируем кнопки быстрых действий
+      const inlineKeyboard = [];
+
+      // Если в локации есть GPS-координаты, создаем кнопку для Навигатора
+      if (orderData.location && orderData.location.includes('GPS:')) {
+        const coords = orderData.location.replace('GPS:', '').trim();
+        inlineKeyboard.push([
+          {
+            text: '🗺️ Построить маршрут (Яндекс.Карты)',
+            url: `https://yandex.ru/maps/?pt=${coords.split(',')[1].trim()},${coords.split(',')[0].trim()}&z=14&l=map`
+          }
+        ]);
+      }
+
+      // Если указан телефон, добавляем кнопку вызова
+      if (orderData.phone && orderData.phone !== 'Не указан') {
+        const cleanPhone = orderData.phone.replace(/[^0-9+]/g, '');
+        inlineKeyboard.push([
+          { text: '📞 Позвонить фермеру', url: `tel:${cleanPhone}` }
+        ]);
+      }
+
       try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
@@ -426,10 +448,11 @@
           body: JSON.stringify({
             chat_id: ADMIN_CHAT_ID,
             text: message,
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: inlineKeyboard }
           })
         });
-        console.log('Уведомление в Telegram успешно отправлено!');
+        console.log('Уведомление с кнопками в Telegram успешно отправлено!');
       } catch (err) {
         console.error('Ошибка отправки уведомления в Telegram:', err);
       }
@@ -486,7 +509,7 @@
           return;
         }
 
-        // 3. Отправляем уведомление вам в Telegram
+        // 3. Отправляем уведомление с кнопками вам в Telegram
         await sendTelegramNotification({
           mill_name: selectedMillName || 'Элеватор',
           crop: selectedCropName || 'Пшеница 3 кл.',
