@@ -320,6 +320,10 @@
     const SUPABASE_KEY = 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2';
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+    // Конфигурация Telegram Bot API
+    const BOT_TOKEN = '8922928543:AAF4Lak3rRJTDnhVY5gB1uXYT-OorV09fts';
+    const ADMIN_CHAT_ID = '1108310943';
+
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
       tg.expand();
@@ -334,6 +338,7 @@
     };
 
     let selectedMillId = null;
+    let selectedMillName = '';
     let currentPricePerTon = 91500;
     let currentSpreadPerTon = 500;
     let selectedCropName = '';
@@ -403,15 +408,45 @@
       }
     }
 
+    // Отправка мгновенного уведомления администратору в Telegram
+    async function sendTelegramNotification(orderData) {
+      const message = `🚨 <b>НОВАЯ ЗАЯВКА НА ТОК!</b>\n\n` +
+                      `🏢 <b>Покупатель:</b> ${orderData.mill_name}\n` +
+                      `🌾 <b>Культура:</b> ${orderData.crop}\n` +
+                      `📦 <b>Объем:</b> ${orderData.volume} тонн\n` +
+                      `📍 <b>Локация:</b> ${orderData.location}\n` +
+                      `💬 <b>Коммент:</b> ${orderData.comment}\n\n` +
+                      `👤 <b>Фермер:</b> ${orderData.user_name} (@${orderData.username})\n` +
+                      `📱 <b>Телефон:</b> ${orderData.phone}`;
+
+      try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: message,
+            parse_mode: 'HTML'
+          })
+        });
+        console.log('Уведомление в Telegram успешно отправлено!');
+      } catch (err) {
+        console.error('Ошибка отправки уведомления в Telegram:', err);
+      }
+    }
+
     async function submitLabRequest() {
       const btn = document.getElementById('btn-submit-order');
       btn.innerText = 'Сохранение заявки...';
       btn.disabled = true;
 
       const volume = parseInt(document.getElementById('volume-input').value) || 60;
+      const locationVal = document.getElementById('location-input').value || 'Не указано';
+      const commentVal = document.getElementById('comment-input').value || 'Нет';
+      const phoneVal = document.getElementById('auth-phone')?.value || 'Не указан';
 
       try {
-        // 1. Запись/обновление пользователя
+        // 1. Запись/обновление пользователя в Supabase
         const userPayload = {
           id: currentTelegramUser.id,
           first_name: currentTelegramUser.first_name || 'Фермер',
@@ -427,10 +462,10 @@
 
         if (userErr) {
           alert('Ошибка при сохранении профиля: ' + userErr.message);
-          return; // Прерываем выполнение, чтобы увидеть точную причину
+          return;
         }
 
-        // 2. Формирование и отправка заказа
+        // 2. Формирование и отправка заказа в Supabase
         const orderPayload = {
           user_id: currentTelegramUser.id,
           crop: selectedCropName || 'Пшеница 3 кл.',
@@ -442,16 +477,28 @@
           orderPayload.mill_id = selectedMillId;
         }
 
-        const { data, error: orderErr } = await supabaseClient
+        const { error: orderErr } = await supabaseClient
           .from('orders')
           .insert([orderPayload]);
 
         if (orderErr) {
-          alert('Ошибка сохранения заказа в Supabase: ' + orderErr.message + (orderErr.details ? ' (Детали: ' + orderErr.details + ')' : ''));
+          alert('Ошибка сохранения заказа: ' + orderErr.message);
           return;
         }
 
-        // 3. Успех
+        // 3. Отправляем уведомление вам в Telegram
+        await sendTelegramNotification({
+          mill_name: selectedMillName || 'Элеватор',
+          crop: selectedCropName || 'Пшеница 3 кл.',
+          volume: volume,
+          location: locationVal,
+          comment: commentVal,
+          user_name: `${currentTelegramUser.first_name} ${currentTelegramUser.last_name || ''}`,
+          username: currentTelegramUser.username || 'нет',
+          phone: phoneVal
+        });
+
+        // 4. Успех
         if (tg && tg.showAlert) {
           tg.showAlert('Заявка успешно создана!');
         } else {
@@ -549,6 +596,7 @@
 
     function openRequestForm(millId, millName, crop, price, spread) {
       selectedMillId = millId;
+      selectedMillName = millName;
       selectedCropName = crop;
       currentPricePerTon = price;
       currentSpreadPerTon = spread;
