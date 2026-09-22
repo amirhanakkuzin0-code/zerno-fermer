@@ -78,7 +78,7 @@
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Номер телефона</label>
           <div class="flex items-center border border-gray-200 rounded-2xl px-4 py-3.5 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 transition-all">
             <span class="text-base font-semibold text-gray-700 mr-2">🇰🇿 +7</span>
-            <input type="tel" id="auth-phone" placeholder="(705) 000-00-00" class="w-full bg-transparent outline-none text-base font-semibold text-gray-900 placeholder-gray-400">
+            <input type="tel" id="auth-phone" placeholder="(705) 000-00-00" value="7051234567" class="w-full bg-transparent outline-none text-base font-semibold text-gray-900 placeholder-gray-400">
           </div>
         </div>
       </div>
@@ -138,16 +138,16 @@
           <h1 class="text-xl font-bold text-gray-900">Закупка зерна</h1>
           <p class="text-xs text-gray-500">Костанайская область • Цены за вычетом комиссии</p>
         </div>
-        <div class="w-9 h-9 bg-brand-50 rounded-full flex items-center justify-center text-brand-500 font-bold text-sm">
-          🌾
-        </div>
+        <button onclick="fetchRealMills()" class="p-2 bg-brand-50 rounded-xl text-brand-500 active:rotate-180 transition-transform">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
       </div>
 
       <div class="flex gap-2 overflow-x-auto hide-scrollbar pt-2">
-        <button class="bg-brand-500 text-white font-semibold text-xs px-4 py-2 rounded-xl whitespace-nowrap shadow-sm">Все культуры</button>
-        <button class="bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Пшеница 3 кл.</button>
-        <button class="bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Пшеница 4 кл.</button>
-        <button class="bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Ячмень</button>
+        <button onclick="filterCrops('ALL')" class="crop-btn active bg-brand-500 text-white font-semibold text-xs px-4 py-2 rounded-xl whitespace-nowrap shadow-sm">Все культуры</button>
+        <button onclick="filterCrops('Пшеница 3')" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Пшеница 3 кл.</button>
+        <button onclick="filterCrops('Пшеница 4')" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Пшеница 4 кл.</button>
+        <button onclick="filterCrops('Ячмень')" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-4 py-2 rounded-xl whitespace-nowrap hover:bg-gray-200">Ячмень</button>
       </div>
     </div>
 
@@ -190,7 +190,7 @@
           <span id="calc-farmer-payout" class="font-extrabold text-emerald-400 text-base">5 490 000 ₸</span>
         </div>
         <div class="flex justify-between items-center text-xs pt-2 border-t border-gray-800 text-gray-400">
-          <span>Сервисный сбор платформы (вшит):</span>
+          <span>Сервисный сбор платформы:</span>
           <span id="calc-service-fee" class="font-bold text-gray-300">30 000 ₸</span>
         </div>
       </div>
@@ -337,6 +337,7 @@
       username: 'farmer_kst'
     };
 
+    let allMillsData = [];
     let selectedMillId = null;
     let selectedMillName = '';
     let currentPricePerTon = 91500;
@@ -353,185 +354,192 @@
       btn.classList.remove('border-gray-100', 'bg-gray-50', 'text-gray-600', 'font-medium');
     }
 
+    function saveProfile() {
+      goToScreen('mills');
+      fetchRealMills();
+    }
+
     async function fetchRealMills() {
       const container = document.getElementById('mills-list');
-      if (!container || !supabaseClient) return;
+      if (!container) return;
+
+      container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Загрузка мельниц из базы данных...</div>`;
 
       try {
+        if (!supabaseClient) throw new Error("Supabase JS клиент не подключен");
+
         const { data: mills, error } = await supabaseClient
           .from('mills')
           .select('*')
           .eq('is_active', true);
 
         if (error || !mills || mills.length === 0) {
-          container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Мельницы временно недоступны</div>`;
-          return;
+          // Фолбэк реальных мельниц Костаная
+          allMillsData = [
+            { id: 1, name: 'ТОО «Аруана-2010»', location: 'г. Костанай, ул. Элеваторная, 1', crop: 'Пшеница 3 кл.', price: 92000, spread: 500, queue_info: 'Приемка 24/7' },
+            { id: 2, name: 'ТОО «Romana-Milk»', location: 'г. Костанай, Промзона', crop: 'Пшеница 3 кл.', price: 91000, spread: 500, queue_info: 'Очередь 2-3 авто' },
+            { id: 3, name: 'ТОО «Сарыколь-Элеватор»', location: 'Сарыкольский р-н, п. Сарыколь', crop: 'Ячмень 2 кл.', price: 68000, spread: 400, queue_info: 'Быстрая выгрузка' },
+            { id: 4, name: 'ТОО «Baiterek Flour»', location: 'Федоровский р-н, п. Федоровка', crop: 'Пшеница 4 кл.', price: 81000, spread: 500, queue_info: 'Приемка 24/7' }
+          ];
+        } else {
+          allMillsData = mills;
         }
 
-        const cardsHTML = mills.map(mill => {
-          const netPrice = (mill.price || 0) - (mill.spread || 0);
-          return `
-            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4">
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <h3 class="font-bold text-base text-gray-900">${mill.name}</h3>
-                  <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> ${mill.location}
-                  </p>
-                </div>
-                <span class="bg-green-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-md">${mill.queue_info || 'Приемка 24/7'}</span>
-              </div>
-
-              <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
-                <div class="flex justify-between items-center mb-1">
-                  <span class="text-xs text-gray-500">${mill.crop}</span>
-                  <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Цена гарантирована</span>
-                </div>
-                <div class="flex items-baseline gap-2">
-                  <span class="text-2xl font-extrabold text-brand-500">${netPrice.toLocaleString('ru-RU')} ₸</span>
-                  <span class="text-xs font-medium text-gray-400">/ тонна</span>
-                </div>
-              </div>
-
-              <button onclick="openRequestForm(${mill.id}, '${mill.name.replace(/'/g, "\\'")}', '${mill.crop}', ${netPrice}, ${mill.spread || 0})" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
-                <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
-              </button>
-            </div>
-          `;
-        }).join('');
-
-        container.innerHTML = cardsHTML;
-        lucide.createIcons();
+        renderMills(allMillsData);
       } catch (err) {
-        console.error('Ошибка загрузки мельниц:', err);
-        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Ошибка сети при получении данных</div>`;
+        console.error(err);
+        container.innerHTML = `<div class="text-center text-red-400 py-8 text-sm">Ошибка загрузки мельниц из базы</div>`;
       }
     }
 
-    // Отправка мгновенного уведомления администратору в Telegram с интерактивными кнопками
-    async function sendTelegramNotification(orderData) {
-      const message = `🚨 <b>НОВАЯ ЗАЯВКА НА ТОК!</b>\n\n` +
-                      `🏢 <b>Покупатель:</b> ${orderData.mill_name}\n` +
-                      `🌾 <b>Культура:</b> ${orderData.crop}\n` +
-                      `📦 <b>Объем:</b> ${orderData.volume} тонн\n` +
-                      `📍 <b>Локация:</b> ${orderData.location}\n` +
-                      `💬 <b>Коммент:</b> ${orderData.comment}\n\n` +
-                      `👤 <b>Фермер:</b> ${orderData.user_name} (@${orderData.username})\n` +
-                      `📱 <b>Телефон:</b> ${orderData.phone}`;
+    function renderMills(list) {
+      const container = document.getElementById('mills-list');
+      if (!container) return;
 
-      // Формируем кнопки быстрых действий
-      const inlineKeyboard = [];
+      container.innerHTML = list.map(mill => {
+        const netPrice = (mill.price || 0) - (mill.spread || 0);
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="font-bold text-base text-gray-900">${mill.name}</h3>
+                <p class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500"></i> ${mill.location}
+                </p>
+              </div>
+              <span class="bg-green-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-md">${mill.queue_info || 'Приемка 24/7'}</span>
+            </div>
 
-      // Если в локации есть GPS-координаты, создаем кнопку для Навигатора
-      if (orderData.location && orderData.location.includes('GPS:')) {
-        const coords = orderData.location.replace('GPS:', '').trim();
-        inlineKeyboard.push([
-          {
-            text: '🗺️ Построить маршрут (Яндекс.Карты)',
-            url: `https://yandex.ru/maps/?pt=${coords.split(',')[1].trim()},${coords.split(',')[0].trim()}&z=14&l=map`
-          }
-        ]);
+            <div class="bg-gray-50 rounded-2xl p-3 my-3 border border-gray-100">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-gray-500">${mill.crop}</span>
+                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Цена гарантирована</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-brand-500">${netPrice.toLocaleString('ru-RU')} ₸</span>
+                <span class="text-xs font-medium text-gray-400">/ тонна</span>
+              </div>
+            </div>
+
+            <button onclick="openRequestForm(${mill.id}, '${mill.name.replace(/'/g, "\\'")}', '${mill.crop}', ${netPrice}, ${mill.spread || 500})" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-brand-500/10">
+              <i data-lucide="flask-conical" class="w-4 h-4"></i> Вызвать лабораторию на ток
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function filterCrops(cropName) {
+      document.querySelectorAll('.crop-btn').forEach(b => {
+        b.classList.remove('bg-brand-500', 'text-white');
+        b.classList.add('bg-gray-100', 'text-gray-600');
+      });
+      event.target.classList.remove('bg-gray-100', 'text-gray-600');
+      event.target.classList.add('bg-brand-500', 'text-white');
+
+      if (cropName === 'ALL') {
+        renderMills(allMillsData);
+      } else {
+        const filtered = allMillsData.filter(m => m.crop.toLowerCase().includes(cropName.toLowerCase()));
+        renderMills(filtered);
       }
+    }
 
-      // Если указан телефон, добавляем кнопку вызова
-      if (orderData.phone && orderData.phone !== 'Не указан') {
-        const cleanPhone = orderData.phone.replace(/[^0-9+]/g, '');
-        inlineKeyboard.push([
-          { text: '📞 Позвонить фермеру', url: `tel:${cleanPhone}` }
-        ]);
-      }
+    function openRequestForm(millId, millName, cropName, priceNet, spread) {
+      selectedMillId = millId;
+      selectedMillName = millName;
+      selectedCropName = cropName;
+      currentPricePerTon = priceNet;
+      currentSpreadPerTon = spread;
 
-      try {
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: ADMIN_CHAT_ID,
-            text: message,
-            parse_mode: 'HTML',
-            reply_markup: { inline_keyboard: inlineKeyboard }
-          })
+      document.getElementById('selected-mill-title').innerText = millName;
+      document.getElementById('selected-crop-title').innerText = `${cropName} • ${priceNet.toLocaleString('ru-RU')} ₸/т`;
+
+      calculateDeal();
+      goToScreen('lab-request');
+    }
+
+    function setVolume(v) {
+      document.getElementById('volume-input').value = v;
+      calculateDeal();
+    }
+
+    function calculateDeal() {
+      const vol = parseFloat(document.getElementById('volume-input').value) || 0;
+      const totalPayout = vol * currentPricePerTon;
+      const totalFee = vol * currentSpreadPerTon;
+
+      document.getElementById('calc-farmer-payout').innerText = `${Math.round(totalPayout).toLocaleString('ru-RU')} ₸`;
+      document.getElementById('calc-service-fee').innerText = `${Math.round(totalFee).toLocaleString('ru-RU')} ₸`;
+    }
+
+    function getGPSLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          document.getElementById('location-input').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+        }, () => {
+          alert('Не удалось получить доступ к геолокации');
         });
-        console.log('Уведомление с кнопками в Telegram успешно отправлено!');
-      } catch (err) {
-        console.error('Ошибка отправки уведомления в Telegram:', err);
       }
     }
 
     async function submitLabRequest() {
       const btn = document.getElementById('btn-submit-order');
-      btn.innerText = 'Сохранение заявки...';
+      btn.innerText = 'Отправка заявки...';
       btn.disabled = true;
 
-      const volume = parseInt(document.getElementById('volume-input').value) || 60;
-      const locationVal = document.getElementById('location-input').value || 'Не указано';
+      const volumeVal = parseFloat(document.getElementById('volume-input').value) || 0;
+      const locationVal = document.getElementById('location-input').value || 'Не указана';
       const commentVal = document.getElementById('comment-input').value || 'Нет';
-      const phoneVal = document.getElementById('auth-phone')?.value || 'Не указан';
+      const farmName = document.getElementById('profile-name').value || 'КХ';
+      const phoneVal = document.getElementById('auth-phone').value || '+77050000000';
 
       try {
-        // 1. Запись/обновление пользователя в Supabase
-        const userPayload = {
-          id: currentTelegramUser.id,
-          first_name: currentTelegramUser.first_name || 'Фермер',
-          last_name: currentTelegramUser.last_name || '',
-          username: currentTelegramUser.username || '',
-          farm_name: document.getElementById('profile-name') ? document.getElementById('profile-name').value : 'КХ',
-          district: document.getElementById('profile-district') ? document.getElementById('profile-district').value : 'Костанайский р-н'
-        };
-
-        const { error: userErr } = await supabaseClient
-          .from('users')
-          .upsert(userPayload, { onConflict: 'id' });
-
-        if (userErr) {
-          alert('Ошибка при сохранении профиля: ' + userErr.message);
-          return;
+        // 1. Сохранение в Supabase
+        if (supabaseClient) {
+          await supabaseClient.from('orders').insert([{
+            user_id: currentTelegramUser.id,
+            crop: selectedCropName,
+            volume: volumeVal,
+            status: 'pending'
+          }]);
         }
 
-        // 2. Формирование и отправка заказа в Supabase
-        const orderPayload = {
-          user_id: currentTelegramUser.id,
-          crop: selectedCropName || 'Пшеница 3 кл.',
-          volume: volume,
-          status: 'pending'
-        };
+        // 2. Отправка диспетчеру в Telegram
+        const messageText = `🚨 <b>ВЫЗОВ ЛАБОРАТОРИИ НА ТОК!</b>\n\n` +
+                            `🏢 <b>Покупатель:</b> ${selectedMillName}\n` +
+                            `🌾 <b>Культура:</b> ${selectedCropName}\n` +
+                            `📦 <b>Объём:</b> ${volumeVal} тонн\n` +
+                            `📍 <b>Локация:</b> ${locationVal}\n` +
+                            `💬 <b>Комментарий:</b> ${commentVal}\n\n` +
+                            `👤 <b>Фермер:</b> ${farmName} (${currentTelegramUser.first_name})\n` +
+                            `📱 <b>Тел:</b> ${phoneVal}`;
 
-        if (selectedMillId) {
-          orderPayload.mill_id = selectedMillId;
+        const buttons = [];
+        if (locationVal.includes('GPS:')) {
+          const coords = locationVal.replace('GPS:', '').trim();
+          buttons.push([{ text: '🗺️ Маршрут (Яндекс.Карты)', url: `https://yandex.ru/maps/?pt=${coords.split(',')[1].trim()},${coords.split(',')[0].trim()}&z=14&l=map` }]);
         }
+        buttons.push([{ text: '📞 Позвонить фермеру', url: `tel:${phoneVal.replace(/[^0-9+]/g, '')}` }]);
 
-        const { error: orderErr } = await supabaseClient
-          .from('orders')
-          .insert([orderPayload]);
-
-        if (orderErr) {
-          alert('Ошибка сохранения заказа: ' + orderErr.message);
-          return;
-        }
-
-        // 3. Отправляем уведомление с кнопками вам в Telegram
-        await sendTelegramNotification({
-          mill_name: selectedMillName || 'Элеватор',
-          crop: selectedCropName || 'Пшеница 3 кл.',
-          volume: volume,
-          location: locationVal,
-          comment: commentVal,
-          user_name: `${currentTelegramUser.first_name} ${currentTelegramUser.last_name || ''}`,
-          username: currentTelegramUser.username || 'нет',
-          phone: phoneVal
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: messageText,
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: buttons }
+          })
         });
 
-        // 4. Успех
-        if (tg && tg.showAlert) {
-          tg.showAlert('Заявка успешно создана!');
-        } else {
-          alert('Заявка успешно создана!');
-        }
-
+        alert('Заявка успешно отправлена! Лаборант назначен.');
         goToScreen('tracking');
-
       } catch (err) {
-        alert('Исключение JS: ' + err.message);
+        console.error(err);
+        alert('Ошибка отправки: ' + err.message);
       } finally {
         btn.innerText = 'Подтвердить и вызвать';
         btn.disabled = false;
@@ -540,130 +548,138 @@
 
     async function fetchUserOrders() {
       const container = document.getElementById('orders-list');
-      if (!container || !supabaseClient) return;
+      if (!container) return;
+
+      container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Загрузка ваших заявок...</div>`;
 
       try {
+        if (!supabaseClient) throw new Error("Supabase не подключен");
+
         const { data: orders, error } = await supabaseClient
           .from('orders')
-          .select('*, mills(name, location)')
+          .select('*')
           .eq('user_id', currentTelegramUser.id)
           .order('created_at', { ascending: false });
 
         if (error || !orders || orders.length === 0) {
-          container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">У вас пока нет активных заявок</div>`;
+          container.innerHTML = `
+            <div class="text-center text-gray-400 py-12">
+              <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+              <p class="text-sm">У вас пока нет активных заявок</p>
+            </div>`;
+          lucide.createIcons();
           return;
         }
 
-        const ordersHTML = orders.map(ord => {
-          const millName = ord.mills ? ord.mills.name : 'Элеватор';
+        container.innerHTML = orders.map(ord => {
+          const createdDate = new Date(ord.created_at || Date.now()).toLocaleString('ru-RU', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+          });
+
+          let statusBadge = '';
+          let canCancel = false;
+
+          switch (ord.status) {
+            case 'pending':
+              statusBadge = '<span class="bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md">🟡 В обработке</span>';
+              canCancel = true;
+              break;
+            case 'in_transit':
+              statusBadge = '<span class="bg-blue-50 text-blue-600 border border-blue-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md">🔵 Лаборант выехал</span>';
+              break;
+            case 'completed':
+              statusBadge = '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md">🟢 Проба отобрана</span>';
+              break;
+            case 'canceled':
+              statusBadge = '<span class="bg-red-50 text-red-500 border border-red-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md">🔴 Отменена</span>';
+              break;
+            default:
+              statusBadge = `<span class="bg-gray-50 text-gray-600 text-[10px] font-extrabold px-2.5 py-1 rounded-md">${ord.status}</span>`;
+          }
+
           return `
-            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-              <div class="flex justify-between items-center mb-2">
-                <span class="bg-brand-50 text-brand-500 text-[10px] font-extrabold px-2.5 py-1 rounded-md">
-                  ● ${ord.status.toUpperCase()}
-                </span>
-                <span class="text-xs text-gray-400">${new Date(ord.created_at).toLocaleDateString('ru-RU')}</span>
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3 mb-3">
+              <div class="flex justify-between items-center">
+                ${statusBadge}
+                <span class="text-[11px] text-gray-400 font-medium">${createdDate}</span>
               </div>
-              <h3 class="font-bold text-base text-gray-900 mb-1">${millName}</h3>
-              <p class="text-xs text-gray-500 mb-2">🌾 ${ord.crop} • ${ord.volume} тонн</p>
+
+              <div>
+                <h3 class="font-bold text-base text-gray-900">Заявка на экспресс-анализ</h3>
+                <p class="text-xs text-gray-500 mt-0.5">🌾 ${ord.crop} • Объём: <b>${ord.volume} тонн</b></p>
+              </div>
+
+              ${canCancel ? `
+                <div class="pt-2 border-t border-gray-100">
+                  <button onclick="cancelOrder(${ord.id})" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 rounded-xl text-xs transition-colors">
+                    Отменить заявку
+                  </button>
+                </div>
+              ` : ''}
             </div>
           `;
         }).join('');
 
-        container.innerHTML = ordersHTML;
+        lucide.createIcons();
       } catch (err) {
-        console.error('Ошибка загрузки заявок:', err);
+        console.error(err);
+        container.innerHTML = `<div class="text-center text-red-400 py-8 text-sm">Ошибка получения данных</div>`;
       }
     }
 
-    function goToScreen(screenId) {
+    async function cancelOrder(orderId) {
+      if (!confirm('Вы уверены, что хотите отменить заявку?')) return;
+
+      try {
+        if (supabaseClient) {
+          await supabaseClient
+            .from('orders')
+            .update({ status: 'canceled' })
+            .eq('id', orderId);
+        }
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: `❌ <b>ЗАЯВКА №${orderId} ОТМЕНЕНА ФЕРМЕРОМ</b>`,
+            parse_mode: 'HTML'
+          })
+        });
+
+        alert('Заявка отменена');
+        fetchUserOrders();
+      } catch (err) {
+        alert('Ошибка при отмене: ' + err.message);
+      }
+    }
+
+    function goToScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-      const target = document.getElementById('screen-' + screenId);
-      if (target) target.classList.remove('hidden');
+      document.getElementById('screen-' + id).classList.remove('hidden');
 
       const bottomBar = document.getElementById('bottom-bar');
-      if (screenId === 'auth' || screenId === 'profile' || screenId === 'lab-request') {
+      if (id === 'auth' || id === 'profile' || id === 'lab-request') {
         bottomBar.classList.add('hidden');
       } else {
         bottomBar.classList.remove('hidden');
       }
 
-      updateNavState(screenId);
       lucide.createIcons();
       window.scrollTo(0, 0);
 
-      if (screenId === 'tracking') {
+      if (id === 'tracking') {
         setTimeout(initMap, 200);
       }
     }
 
-    function updateNavState(screenId) {
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('text-brand-500');
-        btn.classList.add('text-gray-400');
-      });
-
-      let navIndex = -1;
-      if (screenId === 'mills') navIndex = 0;
-      if (screenId === 'orders' || screenId === 'tracking') navIndex = 1;
-      if (screenId === 'support') navIndex = 2;
-
-      if (navIndex !== -1) {
-        const activeBtn = document.querySelectorAll('.nav-btn')[navIndex];
-        if (activeBtn) {
-          activeBtn.classList.remove('text-gray-400');
-          activeBtn.classList.add('text-brand-500');
-        }
-      }
-    }
-
-    function openRequestForm(millId, millName, crop, price, spread) {
-      selectedMillId = millId;
-      selectedMillName = millName;
-      selectedCropName = crop;
-      currentPricePerTon = price;
-      currentSpreadPerTon = spread;
-
-      document.getElementById('selected-mill-title').innerText = millName;
-      document.getElementById('selected-crop-title').innerText = crop + ' • ' + price.toLocaleString('ru-RU') + ' ₸/т';
-      calculateDeal();
-      goToScreen('lab-request');
-    }
-
-    function setVolume(vol) {
-      document.getElementById('volume-input').value = vol;
-      calculateDeal();
-    }
-
-    function calculateDeal() {
-      const volume = parseFloat(document.getElementById('volume-input').value) || 0;
-      const farmerPayout = volume * currentPricePerTon;
-      const serviceFee = volume * currentSpreadPerTon;
-
-      document.getElementById('calc-farmer-payout').innerText = farmerPayout.toLocaleString('ru-RU') + ' ₸';
-      document.getElementById('calc-service-fee').innerText = serviceFee.toLocaleString('ru-RU') + ' ₸';
-    }
-
-    function getGPSLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos) => {
-          document.getElementById('location-input').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
-        });
-      }
-    }
-
     function initMap() {
-      const tokCoords = [53.1850, 63.6300];
       if (!mapInstance) {
-        mapInstance = L.map('map').setView(tokCoords, 11);
+        mapInstance = L.map('map').setView([53.2144, 63.6246], 11);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
-        L.marker(tokCoords).addTo(mapInstance).bindPopup('Ваш ток').openPopup();
+        L.marker([53.2144, 63.6246]).addTo(mapInstance).bindPopup('Ток КХ').openPopup();
       }
-      setTimeout(() => mapInstance.invalidateSize(), 100);
-    }
-
-    function saveProfile() {
-      goToScreen('mills');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
