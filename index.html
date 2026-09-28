@@ -48,7 +48,7 @@
   <!-- ================= ВЕРХНЯЯ ШАПКА ================= -->
   <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="w-9 h-9 bg-brand-50 rounded-2xl flex items-center justify-center shadow-sm">
+      <div class="w-9 h-9 bg-brand-50 rounded-2xl flex items-center justify-center shadow-sm text-base">
         🌱
       </div>
       <div>
@@ -68,7 +68,7 @@
           <h2 class="text-lg font-bold text-gray-900">Закупка зерна</h2>
           <p class="text-xs text-gray-500">Прямые цены за вычетом комиссии</p>
         </div>
-        <button type="button" onclick="fetchRealMills()" class="p-2 bg-brand-50 rounded-xl text-brand-500 font-bold text-xs">
+        <button type="button" onclick="loadMillsData()" class="p-2 bg-brand-50 rounded-xl text-brand-500 font-bold text-xs">
           🔄 Обновить
         </button>
       </div>
@@ -84,7 +84,7 @@
 
     <!-- Список карточек мельниц -->
     <div id="mills-list" class="p-4 space-y-3">
-      <div class="text-center text-gray-400 py-8 text-sm">Загрузка мельниц...</div>
+      <!-- Заполняется JavaScript мгновенно -->
     </div>
   </section>
 
@@ -100,8 +100,8 @@
     <!-- Карточка выбранного закупщика -->
     <div class="bg-brand-50 border border-brand-500/20 rounded-2xl p-4 mb-4">
       <div class="text-[10px] font-bold text-brand-500 uppercase tracking-wider mb-1">Выбранный покупатель</div>
-      <div id="selected-mill-title" class="text-base font-bold text-gray-900">ТОО «Аруана-2010»</div>
-      <div id="selected-crop-title" class="text-xs text-gray-600 font-medium">Пшеница 3 класс • 92 000 ₸/т</div>
+      <div id="selected-mill-title" class="text-base font-bold text-gray-900">ТОО «KMK-PIONEER»</div>
+      <div id="selected-crop-title" class="text-xs text-gray-600 font-medium">Пшеница 3 класс • 93 000 ₸/т</div>
     </div>
 
     <div class="space-y-4 mb-6">
@@ -122,7 +122,7 @@
         <div class="text-xs text-gray-400 font-medium">Расчёт финансовой сделки:</div>
         <div class="flex justify-between items-center text-sm">
           <span class="text-gray-300">Выплата фермеру:</span>
-          <span id="calc-farmer-payout" class="font-extrabold text-emerald-400 text-base">5 520 000 ₸</span>
+          <span id="calc-farmer-payout" class="font-extrabold text-emerald-400 text-base">5 580 000 ₸</span>
         </div>
       </div>
 
@@ -244,26 +244,22 @@
 
   <!-- JavaScript Логика -->
   <script>
-    const SUPABASE_URL = 'https://itmswhovyndnczeavtev.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2';
-    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
-
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) { tg.expand(); tg.ready(); }
-
-    const defaultMillsData = [
+    // Локальные гарантированные данные (загружаются всегда МГНОВЕННО)
+    const baseMills = [
       { id: 1, name: 'ТОО «KMK-PIONEER»', location: 'г. Костанай, ул. Дружбы 34', crop: 'Пшеница 3 кл.', price: 93000 },
       { id: 2, name: 'ТОО «Рамона»', location: 'г. Костанай, ул. Элеваторная 1', crop: 'Пшеница 3 кл.', price: 92500 },
       { id: 3, name: 'ТОО «Сарыколь-Элеватор»', location: 'п. Сарыколь, ул. Заводская', crop: 'Ячмень', price: 68000 }
     ];
 
-    let allMillsData = [...defaultMillsData];
+    let currentMillsList = [...baseMills];
     let currentPricePerTon = 93000;
     let selectedMillName = 'ТОО «KMK-PIONEER»';
 
+    // Функция переключения экранов
     function goToScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
 
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('text-brand-500');
@@ -274,41 +270,19 @@
 
       if (screenId === 'screen-mills') {
         document.getElementById('nav-btn-mills').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
-        roleBadge.innerText = 'Фермер';
+        if (roleBadge) roleBadge.innerText = 'Фермер';
       } else if (screenId === 'screen-orders') {
         document.getElementById('nav-btn-orders').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
       } else if (screenId === 'screen-lab-panel') {
         document.getElementById('nav-btn-lab').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
-        roleBadge.innerText = 'Лаборант';
+        if (roleBadge) roleBadge.innerText = 'Лаборант';
       }
     }
 
-    async function fetchRealMills() {
-      renderMills(defaultMillsData); // Сразу рисуем локальные данные, чтобы не было задержки!
-
-      if (!supabaseClient) return;
-
-      try {
-        // Таймаут 3 секунды для Supabase
-        const fetchPromise = supabaseClient.from('mills').select('*').eq('is_active', true);
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('Timeout'), 3000));
-
-        const res = await Promise.race([fetchPromise, timeoutPromise]);
-        if (res && res.data && res.data.length > 0) {
-          allMillsData = res.data;
-          renderMills(allMillsData);
-        }
-      } catch (err) {
-        console.log('Supabase недоступен, временно используем данные по умолчанию');
-      }
-    }
-
+    // Мгновенный рендер карточек мельниц
     function renderMills(list) {
       const container = document.getElementById('mills-list');
-      if (!list || list.length === 0) {
-        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Мельницы не найдены</div>`;
-        return;
-      }
+      if (!container) return;
 
       container.innerHTML = list.map(mill => `
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
@@ -322,7 +296,7 @@
           <div class="flex justify-between items-center pt-2 border-t border-gray-50">
             <div>
               <div class="text-[10px] text-gray-400 font-medium">Закупка:</div>
-              <div class="text-lg font-black text-brand-500">${mill.price.toLocaleString('ru-RU')} ₸ <span class="text-xs font-normal text-gray-400">/ т</span></div>
+              <div class="text-lg font-black text-brand-500">${Number(mill.price).toLocaleString('ru-RU')} ₸ <span class="text-xs font-normal text-gray-400">/ т</span></div>
             </div>
             <button type="button" onclick="openRequestForm('${mill.name}', '${mill.crop}', ${mill.price})" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-brand-500/20 transition-all">
               Продать зерно
@@ -332,6 +306,26 @@
       `).join('');
     }
 
+    // Загрузка данных с зашитой защитой
+    function loadMillsData() {
+      renderMills(currentMillsList);
+
+      // Фоновое обновление из Supabase без блокировки UI
+      try {
+        if (window.supabase) {
+          const client = window.supabase.createClient('https://itmswhovyndnczeavtev.supabase.co', 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2');
+          client.from('mills').select('*').eq('is_active', true).then(res => {
+            if (res && res.data && res.data.length > 0) {
+              currentMillsList = res.data;
+              renderMills(currentMillsList);
+            }
+          }).catch(e => console.log('Работаем на локальных данных'));
+        }
+      } catch (err) {
+        console.log('Автономный режим');
+      }
+    }
+
     function filterCrops(cropName, btn) {
       document.querySelectorAll('.crop-btn').forEach(b => {
         b.className = 'crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap';
@@ -339,10 +333,10 @@
       btn.className = 'crop-btn active bg-brand-500 text-white font-semibold text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-sm';
 
       if (cropName === 'ALL') {
-        renderMills(allMillsData);
+        renderMills(currentMillsList);
       } else {
-        const filtered = allMillsData.filter(m => m.crop.includes(cropName));
-        renderMills(filtered);
+        const filtered = currentMillsList.filter(m => m.crop && m.crop.includes(cropName));
+        renderMills(filtered.length ? filtered : currentMillsList);
       }
     }
 
@@ -350,7 +344,7 @@
       selectedMillName = name;
       currentPricePerTon = price;
       document.getElementById('selected-mill-title').innerText = name;
-      document.getElementById('selected-crop-title').innerText = `${crop} • ${price.toLocaleString('ru-RU')} ₸/т`;
+      document.getElementById('selected-crop-title').innerText = `${crop} • ${Number(price).toLocaleString('ru-RU')} ₸/т`;
       calculateDeal();
       goToScreen('screen-lab-request');
     }
@@ -392,4 +386,9 @@
       const tw = document.getElementById('lab-testweight').value;
       const tr = document.getElementById('lab-trash').value;
 
-      document.getElementById('passport-gluten
+      document.getElementById('passport-gluten').innerText = `${g}%`;
+      document.getElementById('passport-moisture').innerText = `${m}%`;
+      document.getElementById('passport-testweight').innerText = tw;
+      document.getElementById('passport-trash').innerText = `${tr}%`;
+
+      doc
