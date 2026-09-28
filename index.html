@@ -3,24 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ЗЕРНО.ФЕРМЕР — Telegram Mini App</title>
+  <title>ЗЕРНО.ФЕРМЕР</title>
 
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <!-- Google Fonts Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -30,300 +20,297 @@
         extend: {
           colors: {
             brand: {
-              50: '#eaf5ec',
-              100: '#cce7d2',
-              500: '#2d7d39',
-              600: '#23632d',
-              700: '#1b4d23'
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#16a34a',
+              600: '#15803d',
+              700: '#166534'
             }
           },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif']
-          }
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
         }
       }
     }
   </script>
 
   <style>
-    body {
-      background-color: #f4f6f8;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      font-family: 'Inter', sans-serif;
-    }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    #map { height: 200px; width: 100%; border-radius: 1rem; z-index: 1; }
+    body { background-color: #f8fafc; user-select: none; font-family: 'Inter', sans-serif; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
   </style>
 </head>
-<body class="text-gray-900 pb-24">
+<body class="text-slate-900 pb-20">
 
-  <!-- ================= ВЕРХНИЙ ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ ================= -->
-  <header class="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-sm">
+  <!-- ================= ХЕДЕР ================= -->
+  <header class="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-30 flex items-center justify-between shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-brand-50 rounded-lg flex items-center justify-center">
-        <i data-lucide="sprout" class="w-5 h-5 text-brand-500"></i>
+      <div class="w-9 h-9 bg-brand-50 rounded-xl flex items-center justify-center border border-brand-100">
+        <i data-lucide="sprout" class="w-5 h-5 text-brand-600"></i>
       </div>
-      <span class="font-extrabold text-sm tracking-tight text-gray-900">ЗЕРНО.ФЕРМЕР</span>
+      <div>
+        <h1 class="font-extrabold text-sm text-slate-900 leading-tight">ЗЕРНО.ФЕРМЕР</h1>
+        <p class="text-[10px] text-slate-400 font-medium">Костанайская область</p>
+      </div>
     </div>
-    <select id="role-selector" onchange="switchAppRole(this.value)" class="bg-brand-50 border border-brand-500/30 text-brand-700 text-xs font-bold py-1.5 px-3 rounded-full outline-none">
-      <option value="farmer">🌾 Роль: Фермер</option>
-      <option value="lab">🧪 Роль: Лаборант</option>
-      <option value="mill">🏭 Роль: Мельница</option>
+
+    <!-- Быстрый выбор роли для тестов -->
+    <select id="role-select" onchange="switchRole(this.value)" class="bg-slate-100 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-xl outline-none border border-slate-200">
+      <option value="farmer">🌾 Фермер</option>
+      <option value="lab">🧪 Лаборант</option>
+      <option value="mill">🏭 Мельница</option>
     </select>
   </header>
 
-  <!-- ================= 1. ИНТЕРФЕЙС ФЕРМЕРА ================= -->
-  <main id="role-view-farmer" class="role-view p-4 space-y-4">
-    <!-- Закупка зерна -->
-    <section class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-      <h2 class="text-base font-bold text-gray-900 mb-1">Выбор закупщика</h2>
-      <p class="text-xs text-gray-500 mb-3">Костанайская область • Прямые цены</p>
-      
-      <div class="space-y-3">
-        <div>
-          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Предприятие</label>
-          <select id="farmer-mill-select" onchange="updateFarmerPriceCalc()" class="w-full border border-gray-200 rounded-xl p-3 text-sm font-semibold bg-gray-50 outline-none focus:bg-white focus:border-brand-500">
-            <option value="1" data-price="92000" data-name="ТОО «Аруана-2010»">ТОО «Аруана-2010» — 92 000 ₸/т (Пшеница 3 кл.)</option>
-            <option value="2" data-price="88000" data-name="ТОО «Сарыколь-Элеватор»">ТОО «Сарыколь-Элеватор» — 88 000 ₸/т (Пшеница 3 кл.)</option>
-          </select>
+  <main class="p-4 max-w-md mx-auto">
+
+    <!-- ================= 1. ВКЛАДКА: МЕЛЬНИЦЫ (ГЛАВНАЯ) ================= -->
+    <section id="tab-mills" class="tab-content active space-y-3">
+      <div class="flex justify-between items-center mb-1">
+        <h2 class="text-base font-extrabold text-slate-900">Закупщики зерна</h2>
+        <span class="text-[11px] bg-brand-50 text-brand-700 font-bold px-2.5 py-1 rounded-full">Прямые цены</span>
+      </div>
+
+      <!-- Карточка Мельницы 1 -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">г. Костанай</span>
+            <h3 class="font-extrabold text-base text-slate-900">ТОО «Аруана-2010»</h3>
+            <p class="text-xs text-slate-500">Приемка 24/7 • Промзона</p>
+          </div>
+          <span class="bg-emerald-50 text-emerald-700 font-bold text-xs px-2.5 py-1 rounded-lg">Пшеница 3 кл.</span>
         </div>
 
-        <div>
-          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Объем партии (тонн)</label>
-          <input type="number" id="farmer-volume-input" value="120" oninput="updateFarmerPriceCalc()" class="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold bg-gray-50 outline-none focus:bg-white focus:border-brand-500">
+        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+          <div>
+            <div class="text-[10px] text-slate-400 font-medium">Цена закупа:</div>
+            <div class="text-lg font-black text-brand-600">92 000 ₸ <span class="text-xs font-normal text-slate-400">/ тонна</span></div>
+          </div>
+          <button onclick="openLabForm('ТОО «Аруана-2010»', 92000)" class="bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-brand-500/10 transition-all flex items-center gap-1.5">
+            <span>Продать зерно</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Карточка Мельницы 2 -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Сарыкольский р-н</span>
+            <h3 class="font-extrabold text-base text-slate-900">ТОО «Сарыколь-Элеватор»</h3>
+            <p class="text-xs text-slate-500">Быстрая выгрузка без очередей</p>
+          </div>
+          <span class="bg-emerald-50 text-emerald-700 font-bold text-xs px-2.5 py-1 rounded-lg">Пшеница 3 кл.</span>
         </div>
 
-        <div class="bg-gray-900 text-white rounded-xl p-3 flex justify-between items-center text-xs">
-          <span class="text-gray-400">Расчетная сумма выплаты:</span>
-          <span id="farmer-total-payout" class="font-extrabold text-emerald-400 text-sm">11 040 000 ₸</span>
+        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+          <div>
+            <div class="text-[10px] text-slate-400 font-medium">Цена закупа:</div>
+            <div class="text-lg font-black text-brand-600">88 000 ₸ <span class="text-xs font-normal text-slate-400">/ тонна</span></div>
+          </div>
+          <button onclick="openLabForm('ТОО «Сарыколь-Элеватор»', 88000)" class="bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-brand-500/10 transition-all flex items-center gap-1.5">
+            <span>Продать зерно</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
     </section>
 
-    <!-- Форма вызова лаборатории -->
-    <section class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
-      <h2 class="text-base font-bold text-gray-900">📍 Вызов лаборанта на ток</h2>
-      
-      <div>
-        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Локация тока (Район / GPS)</label>
-        <div class="flex gap-2">
-          <input type="text" id="farmer-location-input" value="Костанайский р-н, с.Заречное, Ток №2" class="w-full border border-gray-200 rounded-xl p-3 text-xs font-semibold bg-gray-50 outline-none">
-          <button onclick="getGPSLocation()" class="bg-brand-50 text-brand-500 px-3 rounded-xl text-xs font-bold">GPS</button>
-        </div>
-      </div>
-
-      <button onclick="submitFarmerRequest()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-md transition-all">
-        🚗 Запросить экспресс-выезд
+    <!-- ================= МОДАЛЬНЫЙ ЭКРАН: ВЫЗОВ ЛАБОРАТОРИИ ================= -->
+    <section id="screen-request-form" class="hidden space-y-4">
+      <button onclick="closeLabForm()" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 mb-2">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад к выбору мельниц
       </button>
-    </section>
 
-    <!-- Статус текущей заявки -->
-    <section class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="text-sm font-bold text-gray-900">Статус заявки #ORD-9021</h2>
-        <span id="farmer-status-badge" class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Лаборант в пути</span>
-      </div>
-
-      <div id="rain-alert-banner" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl">
-        🌧️ <b>Внимание:</b> Во время выезда зафиксированы осадки. Применена скидка на сушку и коррекция влажности.
-      </div>
-
-      <div id="farmer-passport-container" class="hidden bg-brand-50/60 border border-brand-500/20 rounded-xl p-3 space-y-2">
-        <div class="text-xs font-bold text-brand-700">📄 Результаты лабораторного анализа:</div>
-        <div class="grid grid-cols-2 gap-2 text-center">
-          <div class="bg-white p-2 rounded-lg border border-gray-100"><div id="passport-gluten" class="font-extrabold text-brand-500 text-sm">25.5%</div><div class="text-[10px] text-gray-400">Клейковина</div></div>
-          <div class="bg-white p-2 rounded-lg border border-gray-100"><div id="passport-moisture" class="font-extrabold text-brand-500 text-sm">13.5%</div><div class="text-[10px] text-gray-400">Влажность</div></div>
-          <div class="bg-white p-2 rounded-lg border border-gray-100"><div id="passport-testweight" class="font-extrabold text-brand-500 text-sm">765</div><div class="text-[10px] text-gray-400">Натура (г/л)</div></div>
-          <div class="bg-white p-2 rounded-lg border border-gray-100"><div id="passport-trash" class="font-extrabold text-brand-500 text-sm">1.5%</div><div class="text-[10px] text-gray-400">Сорность</div></div>
-        </div>
-      </div>
-
-      <div id="farmer-weights-container" class="hidden text-xs text-gray-600 pt-2 border-t border-gray-100 space-y-1">
-        <div>⚖️ <b>Чистый вес на току:</b> <span id="weight-farm-net">30.10</span> тонн</div>
-        <div>🏬 <b>Чистый вес на мельнице:</b> <span id="weight-mill-net">30.05</span> тонн</div>
-        <div class="text-[10px] text-emerald-600 font-semibold">Погрешность 0.16% — В пределах нормы ✅</div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ================= 2. ИНТЕРФЕЙС ЛАБОРАНТА ================= -->
-  <main id="role-view-lab" class="role-view hidden p-4 space-y-4">
-    <section class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="text-base font-bold text-gray-900">🧪 Выезд #ORD-9021</h2>
-        <span class="text-xs bg-gray-100 font-semibold px-2 py-1 rounded-lg">КХ «Дала»</span>
-      </div>
-
-      <div class="text-xs text-gray-500 space-y-1">
-        <div><b>Локация:</b> Костанайский р-н, с.Заречное, Ток №2</div>
-        <div><b>Объем:</b> 120 тонн пшеницы</div>
-      </div>
-
-      <div class="flex gap-2">
-        <a href="https://yandex.ru/maps/?text=53.214,63.632" target="_blank" class="w-full bg-gray-100 text-gray-700 text-center font-bold py-2 rounded-xl text-xs">🗺️ Проложить маршрут</a>
-        <button onclick="toggleRainStatus()" id="btn-rain-toggle" class="w-full bg-gray-100 text-gray-700 font-bold py-2 rounded-xl text-xs">☀️ Погода: Сухо</button>
-      </div>
-
-      <div class="pt-2 border-t border-gray-100 space-y-3">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-4">
         <div>
-          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Номер пломбы / сейф-пакета</label>
-          <input type="text" id="lab-seal-input" value="ПАКЕТ-4821" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs font-bold bg-gray-50">
+          <span class="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Выбранный закупщик</span>
+          <h2 id="target-mill-name" class="text-lg font-extrabold text-slate-900">ТОО «Аруана-2010»</h2>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Клейковина (%)</label><input type="number" step="0.1" id="lab-gluten" value="25.5" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs font-bold"></div>
-          <div><label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Влажность (%)</label><input type="number" step="0.1" id="lab-moisture" value="13.5" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs font-bold"></div>
-          <div><label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Натура (г/л)</label><input type="number" id="lab-testweight" value="765" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs font-bold"></div>
-          <div><label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Сорность (%)</label><input type="number" step="0.1" id="lab-trash" value="1.5" class="w-full border border-gray-200 rounded-xl p-2.5 text-xs font-bold"></div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Объем партии (тонн)</label>
+          <input type="number" id="form-volume" value="120" oninput="recalcPayout()" class="w-full border border-slate-200 rounded-xl p-3 font-bold text-base bg-slate-50 outline-none focus:border-brand-500 focus:bg-white">
         </div>
 
-        <button onclick="saveLabPassport()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">
-          ✅ Сформировать и отправить Паспорт Качества
+        <div class="bg-slate-900 text-white rounded-xl p-3.5 flex justify-between items-center">
+          <span class="text-xs text-slate-400 font-medium">Сумма к выплате:</span>
+          <span id="form-total-payout" class="text-base font-black text-emerald-400">11 040 000 ₸</span>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Локация тока или склада</label>
+            <button onclick="fillGPS()" class="text-[11px] font-bold text-brand-600 flex items-center gap-1">
+              <i data-lucide="crosshair" class="w-3 h-3"></i> GPS тока
+            </button>
+          </div>
+          <input type="text" id="form-location" value="с. Заречное, Ток №2" class="w-full border border-slate-200 rounded-xl p-3 text-xs font-semibold bg-slate-50 outline-none focus:border-brand-500 focus:bg-white">
+        </div>
+
+        <button onclick="sendOrder()" class="w-full bg-brand-600 hover:bg-brand-700 active:scale-98 text-white font-extrabold py-3.5 rounded-xl text-sm shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
+          <i data-lucide="car" class="w-4 h-4"></i> Вызвать лаборанта на ток
         </button>
       </div>
     </section>
-  </main>
 
-  <!-- ================= 3. ИНТЕРФЕЙС МЕЛЬНИЦЫ ================= -->
-  <main id="role-view-mill" class="role-view hidden p-4 space-y-4">
-    <section class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
-      <h2 class="text-base font-bold text-gray-900">🏭 Приемка зерновозов (Весовая)</h2>
-      <p class="text-xs text-gray-500">Сверка весов тока и мельницы по партии #ORD-9021</p>
+    <!-- ================= 2. ВКЛАДКА: МОИ ЗАЯВКИ ================= -->
+    <section id="tab-orders" class="tab-content space-y-3">
+      <h2 class="text-base font-extrabold text-slate-900 mb-1">Активные заявки</h2>
 
-      <div class="space-y-2 bg-gray-50 p-3 rounded-xl text-xs">
-        <div class="font-bold text-gray-700">1. Фиксация на току у фермера:</div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="text-[10px] text-gray-400">Тара (кг)</label><input type="number" id="mill-farm-tara" value="14200" class="w-full border p-2 rounded-lg bg-white"></div>
-          <div><label class="text-[10px] text-gray-400">Брутто (кг)</label><input type="number" id="mill-farm-gross" value="44300" class="w-full border p-2 rounded-lg bg-white"></div>
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-sm text-slate-900">Заявка #ORD-9021</span>
+          <span id="order-status-badge" class="bg-amber-50 text-amber-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full">Лаборант в пути</span>
+        </div>
+
+        <div class="text-xs text-slate-500 space-y-1">
+          <div><b>Закупщик:</b> <span id="ord-mill">ТОО «Аруана-2010»</span></div>
+          <div><b>Объем:</b> <span id="ord-vol">120 тонн</span></div>
+          <div><b>Локация:</b> <span id="ord-loc">с. Заречное, Ток №2</span></div>
+        </div>
+
+        <!-- Цифровой Паспорт качества (появляется после замера) -->
+        <div id="passport-box" class="hidden bg-emerald-50/60 border border-emerald-200 rounded-xl p-3 space-y-2">
+          <div class="text-xs font-extrabold text-emerald-800 flex items-center gap-1">
+            <i data-lucide="file-check" class="w-4 h-4"></i>
+            <span>Паспорт качества лаборатории:</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-center">
+            <div class="bg-white p-2 rounded-lg border border-slate-100"><div id="res-gluten" class="font-black text-brand-600 text-sm">25.5%</div><div class="text-[9px] text-slate-400 font-bold uppercase">Клейковина</div></div>
+            <div class="bg-white p-2 rounded-lg border border-slate-100"><div id="res-moisture" class="font-black text-brand-600 text-sm">13.5%</div><div class="text-[9px] text-slate-400 font-bold uppercase">Влажность</div></div>
+            <div class="bg-white p-2 rounded-lg border border-slate-100"><div id="res-testweight" class="font-black text-brand-600 text-sm">765</div><div class="text-[9px] text-slate-400 font-bold uppercase">Натура (г/л)</div></div>
+            <div class="bg-white p-2 rounded-lg border border-slate-100"><div id="res-trash" class="font-black text-brand-600 text-sm">1.5%</div><div class="text-[9px] text-slate-400 font-bold uppercase">Сорность</div></div>
+          </div>
         </div>
       </div>
-
-      <div class="space-y-2 bg-gray-50 p-3 rounded-xl text-xs">
-        <div class="font-bold text-gray-700">2. Фиксация на весовой мельницы:</div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="text-[10px] text-gray-400">Тара (кг)</label><input type="number" id="mill-mill-tara" value="14200" class="w-full border p-2 rounded-lg bg-white"></div>
-          <div><label class="text-[10px] text-gray-400">Брутто (кг)</label><input type="number" id="mill-mill-gross" value="44250" class="w-full border p-2 rounded-lg bg-white"></div>
-        </div>
-      </div>
-
-      <button onclick="confirmMillWeights()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">
-        💾 Подтвердить реестр приемки
-      </button>
     </section>
+
+    <!-- ================= 3. ИНТЕРФЕЙС ЛАБОРАНТА ================= -->
+    <section id="tab-lab" class="tab-content space-y-3">
+      <h2 class="text-base font-extrabold text-slate-900 mb-1">Панель лаборанта</h2>
+
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-sm text-slate-900">Выезд #ORD-9021</span>
+          <span class="text-xs font-bold text-brand-600">КХ «Дала»</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Клейковина (%)</label><input type="number" step="0.1" id="input-gluten" value="25.5" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-slate-50"></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Влажность (%)</label><input type="number" step="0.1" id="input-moisture" value="13.5" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-slate-50"></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Натура (г/л)</label><input type="number" id="input-testweight" value="765" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-slate-50"></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Сорность (%)</label><input type="number" step="0.1" id="input-trash" value="1.5" class="w-full border p-2.5 rounded-xl font-bold text-xs bg-slate-50"></div>
+        </div>
+
+        <button onclick="savePassport()" class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">
+          ✅ Сохранить и выдать Паспорт
+        </button>
+      </div>
+    </section>
+
   </main>
 
-  <!-- JavaScript Логика -->
+  <!-- ================= НИЖНЯЯ НАВИГАЦИЯ ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-16 flex items-center justify-around z-40 px-4 shadow-lg">
+    <button onclick="switchTab('mills')" id="nav-mills" class="flex flex-col items-center gap-1 text-brand-600 font-bold">
+      <i data-lucide="building-2" class="w-5 h-5"></i>
+      <span class="text-[10px]">Мельницы</span>
+    </button>
+
+    <button onclick="switchTab('orders')" id="nav-orders" class="flex flex-col items-center gap-1 text-slate-400 font-medium">
+      <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+      <span class="text-[10px]">Заявки</span>
+    </button>
+  </nav>
+
   <script>
-    // Конфигурация параметров с безопасными фоллбеками
-    const CONFIG = {
-      SUPABASE_URL: window.ENV_SUPABASE_URL || 'https://itmswhovyndnczeavtev.supabase.co',
-      SUPABASE_KEY: window.ENV_SUPABASE_KEY || 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2',
-      BOT_TOKEN: window.ENV_BOT_TOKEN || '',
-      ADMIN_CHAT_ID: window.ENV_CHAT_ID || ''
-    };
+    let currentPrice = 92000;
+    let selectedMill = '';
 
-    const supabaseClient = window.supabase ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY) : null;
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(el => {
+        el.classList.remove('text-brand-600', 'font-bold');
+        el.classList.add('text-slate-400', 'font-medium');
+      });
 
-    // Инициализация Telegram Mini App
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) {
-      tg.expand();
-      tg.ready();
+      if (tabId === 'mills') {
+        document.getElementById('tab-mills').classList.add('active');
+        document.getElementById('screen-request-form').classList.add('hidden');
+        document.getElementById('nav-mills').className = 'flex flex-col items-center gap-1 text-brand-600 font-bold';
+      } else if (tabId === 'orders') {
+        document.getElementById('tab-orders').classList.add('active');
+        document.getElementById('nav-orders').className = 'flex flex-col items-center gap-1 text-brand-600 font-bold';
+      } else if (tabId === 'lab') {
+        document.getElementById('tab-lab').classList.add('active');
+      }
     }
 
-    let isRainActive = false;
-
-    function switchAppRole(role) {
-      document.querySelectorAll('.role-view').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`role-view-${role}`).classList.remove('hidden');
+    function switchRole(role) {
+      if (role === 'farmer') switchTab('mills');
+      if (role === 'lab') switchTab('lab');
+      if (role === 'mill') alert('Диспетчерская мельницы открыта в веб-кабинете');
     }
 
-    function updateFarmerPriceCalc() {
-      const select = document.getElementById('farmer-mill-select');
-      const selectedOption = select.options[select.selectedIndex];
-      const price = parseFloat(selectedOption.getAttribute('data-price')) || 92000;
-      const volume = parseFloat(document.getElementById('farmer-volume-input').value) || 0;
-      
-      const total = price * volume;
-      document.getElementById('farmer-total-payout').innerText = `${total.toLocaleString('ru-RU')} ₸`;
+    function openLabForm(millName, price) {
+      selectedMill = millName;
+      currentPrice = price;
+      document.getElementById('target-mill-name').innerText = millName;
+      document.getElementById('tab-mills').classList.remove('active');
+      document.getElementById('screen-request-form').classList.remove('hidden');
+      recalcPayout();
     }
 
-    function getGPSLocation() {
+    function closeLabForm() {
+      document.getElementById('screen-request-form').classList.add('hidden');
+      document.getElementById('tab-mills').classList.add('active');
+    }
+
+    function recalcPayout() {
+      const vol = parseFloat(document.getElementById('form-volume').value) || 0;
+      const total = vol * currentPrice;
+      document.getElementById('form-total-payout').innerText = `${total.toLocaleString('ru-RU')} ₸`;
+    }
+
+    function fillGPS() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-          document.getElementById('farmer-location-input').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
-        }, () => {
-          alert('Не удалось определить GPS. Введите адрес вручную.');
+          document.getElementById('form-location').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
         });
       }
     }
 
-    function submitFarmerRequest() {
-      alert('Заявка создана! Диспетчер и лаборант получили уведомление.');
+    function sendOrder() {
+      const vol = document.getElementById('form-volume').value;
+      const loc = document.getElementById('form-location').value;
+
+      document.getElementById('ord-mill').innerText = selectedMill;
+      document.getElementById('ord-vol').innerText = `${vol} тонн`;
+      document.getElementById('ord-loc').innerText = loc;
+
+      alert('Заявка успешно отправлена! Замерщик выезжает.');
+      closeLabForm();
+      switchTab('orders');
     }
 
-    function toggleRainStatus() {
-      isRainActive = !isRainActive;
-      const btn = document.getElementById('btn-rain-toggle');
-      if (isRainActive) {
-        btn.innerText = '🌧️ Погода: Дождь (Осадки)';
-        btn.classList.replace('bg-gray-100', 'bg-red-100');
-        btn.classList.replace('text-gray-700', 'text-red-700');
-      } else {
-        btn.innerText = '☀️ Погода: Сухо';
-        btn.classList.replace('bg-red-100', 'bg-gray-100');
-        btn.classList.replace('text-red-700', 'text-gray-700');
-      }
+    function savePassport() {
+      document.getElementById('res-gluten').innerText = `${document.getElementById('input-gluten').value}%`;
+      document.getElementById('res-moisture').innerText = `${document.getElementById('input-moisture').value}%`;
+      document.getElementById('res-testweight').innerText = document.getElementById('input-testweight').value;
+      document.getElementById('res-trash').innerText = `${document.getElementById('input-trash').value}%`;
+
+      document.getElementById('passport-box').classList.remove('hidden');
+      document.getElementById('order-status-badge').innerText = 'Завершено';
+      document.getElementById('order-status-badge').className = 'bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full';
+
+      alert('Паспорт сохранен и передан фермеру!');
+      switchTab('orders');
     }
 
-    function saveLabPassport() {
-      const gluten = document.getElementById('lab-gluten').value;
-      const moisture = document.getElementById('lab-moisture').value;
-      const testWeight = document.getElementById('lab-testweight').value;
-      const trash = document.getElementById('lab-trash').value;
-
-      document.getElementById('passport-gluten').innerText = `${gluten}%`;
-      document.getElementById('passport-moisture').innerText = `${moisture}%`;
-      document.getElementById('passport-testweight').innerText = testWeight;
-      document.getElementById('passport-trash').innerText = `${trash}%`;
-
-      document.getElementById('farmer-passport-container').classList.remove('hidden');
-      document.getElementById('farmer-status-badge').innerText = 'Завершено';
-      document.getElementById('farmer-status-badge').className = 'bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full';
-
-      if (isRainActive) {
-        document.getElementById('rain-alert-banner').classList.remove('hidden');
-      } else {
-        document.getElementById('rain-alert-banner').classList.add('hidden');
-      }
-
-      alert('Паспорт качества сформирован и передан фермеру!');
-      switchAppRole('farmer');
-    }
-
-    function confirmMillWeights() {
-      const farmTara = parseFloat(document.getElementById('mill-farm-tara').value) || 0;
-      const farmGross = parseFloat(document.getElementById('mill-farm-gross').value) || 0;
-      const millTara = parseFloat(document.getElementById('mill-mill-tara').value) || 0;
-      const millGross = parseFloat(document.getElementById('mill-mill-gross').value) || 0;
-
-      const farmNet = (farmGross - farmTara) / 1000;
-      const millNet = (millGross - millTara) / 1000;
-
-      document.getElementById('weight-farm-net').innerText = farmNet.toFixed(2);
-      document.getElementById('weight-mill-net').innerText = millNet.toFixed(2);
-      document.getElementById('farmer-weights-container').classList.remove('hidden');
-
-      alert('Реестр приемки весовой подтвержден!');
-      switchAppRole('farmer');
-    }
-
-    // Инициализация интерфейса при загрузке
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) window.lucide.createIcons();
-      updateFarmerPriceCalc();
     });
   </script>
 </body>
