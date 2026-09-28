@@ -50,7 +50,7 @@
 </head>
 <body class="text-gray-900 pb-20">
 
-  <!-- ================= ВЕРХНЯЯ Шапка ================= -->
+  <!-- ================= ВЕРХНЯЯ ШАПКА ================= -->
   <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-sm">
     <div class="flex items-center gap-2">
       <div class="w-9 h-9 bg-brand-50 rounded-2xl flex items-center justify-center shadow-sm">
@@ -194,10 +194,10 @@
     <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
       <h2 class="text-base font-bold text-gray-900">🧪 Ввод замера #ORD-9021</h2>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Клейковина (%)</label><input type="number" id="lab-gluten" value="25.5" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
-        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Влажность (%)</label><input type="number" id="lab-moisture" value="13.5" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
-        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Натура (г/л)</label><input type="number" id="lab-testweight" value="765" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
-        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Сорность (%)</label><input type="number" id="lab-trash" value="1.5" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Клейковина (%)</label><input type="number" id="lab-gluten" value="25.5" class="w-full border p-2 rounded-xl text-xs font-bold outline-none"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Влажность (%)</label><input type="number" id="lab-moisture" value="13.5" class="w-full border p-2 rounded-xl text-xs font-bold outline-none"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Натура (г/л)</label><input type="number" id="lab-testweight" value="765" class="w-full border p-2 rounded-xl text-xs font-bold outline-none"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Сорность (%)</label><input type="number" id="lab-trash" value="1.5" class="w-full border p-2 rounded-xl text-xs font-bold outline-none"></div>
       </div>
       <button type="button" onclick="saveLabPassport()" class="w-full bg-brand-500 text-white font-bold py-3 rounded-xl text-xs shadow-md">
         ✅ Отправить Паспорт Фермеру
@@ -276,20 +276,11 @@
         renderMills(allMillsData);
       } catch (err) {
         console.error(err);
-        // Резервный фоллбек, чтобы приложение никогда не зависало на бесконечной загрузке
-        allMillsData = [
-          { id: 1, name: 'ТОО «Аруана-2010»', location: 'г. Костанай, ул. Элеваторная, 1', crop: 'Пшеница 3 кл.', price: 92000 },
-          { id: 2, name: 'ТОО «Romana-Milk»', location: 'г. Костанай, Промзона', crop: 'Пшеница 3 кл.', price: 91000 },
-          { id: 3, name: 'ТОО «Сарыколь-Элеватор»', location: 'Сарыкольский р-н, п. Сарыколь', crop: 'Ячмень', price: 68000 }
-        ];
-        renderMills(allMillsData);
       }
     }
 
     function renderMills(list) {
       const container = document.getElementById('mills-list');
-      if (!container) return;
-
       container.innerHTML = list.map(mill => `
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
           <div class="flex justify-between items-start">
@@ -302,7 +293,7 @@
           <div class="flex justify-between items-center pt-2 border-t border-gray-50">
             <div>
               <div class="text-[10px] text-gray-400 font-medium">Закупка:</div>
-              <div class="text-lg font-black text-brand-500">${Number(mill.price).toLocaleString('ru-RU')} ₸ <span class="text-xs font-normal text-gray-400">/ т</span></div>
+              <div class="text-lg font-black text-brand-500">${mill.price.toLocaleString('ru-RU')} ₸ <span class="text-xs font-normal text-gray-400">/ т</span></div>
             </div>
             <button type="button" onclick="openRequestForm('${mill.name}', '${mill.crop}', ${mill.price})" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-brand-500/20 transition-all">
               Продать зерно
@@ -310,7 +301,6 @@
           </div>
         </div>
       `).join('');
-
       if (window.lucide) window.lucide.createIcons();
     }
 
@@ -323,7 +313,7 @@
       if (cropName === 'ALL') {
         renderMills(allMillsData);
       } else {
-        const filtered = allMillsData.filter(m => m.crop && m.crop.includes(cropName));
+        const filtered = allMillsData.filter(m => m.crop.includes(cropName));
         renderMills(filtered);
       }
     }
@@ -332,7 +322,7 @@
       selectedMillName = name;
       currentPricePerTon = price;
       document.getElementById('selected-mill-title').innerText = name;
-      document.getElementById('selected-crop-title').innerText = `${crop} • ${Number(price).toLocaleString('ru-RU')} ₸/т`;
+      document.getElementById('selected-crop-title').innerText = `${crop} • ${price.toLocaleString('ru-RU')} ₸/т`;
       calculateDeal();
       goToScreen('screen-lab-request');
     }
@@ -369,9 +359,17 @@
     }
 
     function saveLabPassport() {
-      const g = document.getElementById('lab-gluten').value;
-      const m = document.getElementById('lab-moisture').value;
-      const tw = document.getElementById('lab-testweight').value;
-      const tr = document.getElementById('lab-trash').value;
+      document.getElementById('passport-gluten').innerText = `${document.getElementById('lab-gluten').value}%`;
+      document.getElementById('passport-moisture').innerText = `${document.getElementById('lab-moisture').value}%`;
+      document.getElementById('passport-testweight').innerText = document.getElementById('lab-testweight').value;
+      document.getElementById('passport-trash').innerText = `${document.getElementById('lab-trash').value}%`;
 
-      document.getElementById('passport-gluten').innerText = 
+      document.getElementById('order-passport-box').classList.remove('hidden');
+      document.getElementById('order-status-badge').innerText = 'Завершено';
+      document.getElementById('order-status-badge').className = 'bg-brand-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-full';
+
+      alert('Паспорт сохранен и отправлен фермеру!');
+      goToScreen('screen-orders');
+    }
+
+    docum
