@@ -7,16 +7,12 @@
 
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
   <!-- Google Fonts Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -33,9 +29,7 @@
               700: '#1b4d23'
             }
           },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif']
-          }
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
         }
       }
     }
@@ -56,7 +50,7 @@
 </head>
 <body class="text-gray-900 pb-20">
 
-  <!-- ================= ВЕРХНЯЯ ШАПКА ================= -->
+  <!-- ================= ВЕРХНЯЯ Шапка ================= -->
   <header class="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-sm">
     <div class="flex items-center gap-2">
       <div class="w-9 h-9 bg-brand-50 rounded-2xl flex items-center justify-center shadow-sm">
@@ -68,10 +62,15 @@
       </div>
     </div>
 
-    <span id="role-badge" class="bg-brand-50 text-brand-500 font-bold text-xs px-3 py-1 rounded-full">Фермер</span>
+    <!-- Режим просмотра (для тестов ролей) -->
+    <select id="role-selector" onchange="switchAppRole(this.value)" class="bg-gray-100 text-gray-600 text-[11px] font-bold py-1.5 px-2.5 rounded-xl outline-none">
+      <option value="farmer">🌾 Фермер</option>
+      <option value="lab">🧪 Лаборант</option>
+      <option value="mill">🏭 Мельница</option>
+    </select>
   </header>
 
-  <!-- ================= 1. ЭКРАН: МЕЛЬНИЦЫ И ЦЕНЫ (ИЗ SUPABASE) ================= -->
+  <!-- ================= 1. ЭКРАН: МЕЛЬНИЦЫ И ЦЕНЫ ================= -->
   <section id="screen-mills" class="screen active">
     <div class="bg-white p-4 border-b border-gray-100 shadow-sm sticky top-[53px] z-30">
       <div class="flex items-center justify-between mb-2">
@@ -79,21 +78,21 @@
           <h2 class="text-lg font-bold text-gray-900">Закупка зерна</h2>
           <p class="text-xs text-gray-500">Прямые цены за вычетом комиссии</p>
         </div>
-        <button type="button" onclick="fetchRealMills()" class="p-2 bg-brand-50 rounded-xl text-brand-500 active:rotate-180 transition-transform">
+        <button onclick="fetchRealMills()" class="p-2 bg-brand-50 rounded-xl text-brand-500 active:rotate-180 transition-transform">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
         </button>
       </div>
 
       <!-- Фильтры Культур -->
       <div class="flex gap-2 overflow-x-auto hide-scrollbar pt-1">
-        <button type="button" onclick="filterCrops('ALL', this)" class="crop-btn active bg-brand-500 text-white font-semibold text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-sm">Все культуры</button>
-        <button type="button" onclick="filterCrops('Пшеница 3', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Пшеница 3 кл.</button>
-        <button type="button" onclick="filterCrops('Пшеница 4', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Пшеница 4 кл.</button>
-        <button type="button" onclick="filterCrops('Ячмень', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Ячмень</button>
+        <button onclick="filterCrops('ALL', this)" class="crop-btn active bg-brand-500 text-white font-semibold text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-sm">Все культуры</button>
+        <button onclick="filterCrops('Пшеница 3', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Пшеница 3 кл.</button>
+        <button onclick="filterCrops('Пшеница 4', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Пшеница 4 кл.</button>
+        <button onclick="filterCrops('Ячмень', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Ячмень</button>
       </div>
     </div>
 
-    <!-- Список мельниц из Supabase -->
+    <!-- Список карточек мельниц -->
     <div id="mills-list" class="p-4 space-y-3">
       <div class="text-center text-gray-400 py-8 text-sm">Загрузка мельниц из базы данных...</div>
     </div>
@@ -101,43 +100,47 @@
 
   <!-- ================= 2. ЭКРАН: ВЫЗОВ ЛАБОРАТОРИИ С КАЛЬКУЛЯТОРОМ ================= -->
   <section id="screen-lab-request" class="screen p-4 bg-white min-h-[calc(100vh-60px)]">
-    <button type="button" onclick="goToScreen('screen-mills')" class="text-gray-400 hover:text-gray-700 mb-4 flex items-center gap-1 text-sm font-medium">
+    <button onclick="goToScreen('screen-mills')" class="text-gray-400 hover:text-gray-700 mb-4 flex items-center gap-1 text-sm font-medium">
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад к мельницам
     </button>
 
     <h2 class="text-xl font-bold text-gray-900 mb-1">Заявка на экспресс-анализ</h2>
     <p class="text-xs text-gray-500 mb-4">Лаборант приедет на ток с мобильным анализатором качества</p>
 
+    <!-- Карточка выбранного закупщика -->
     <div class="bg-brand-50 border border-brand-500/20 rounded-2xl p-4 mb-4">
       <div class="text-[10px] font-bold text-brand-500 uppercase tracking-wider mb-1">Выбранный покупатель</div>
-      <div id="selected-mill-title" class="text-base font-bold text-gray-900">ТОО «Рамона»</div>
-      <div id="selected-crop-title" class="text-xs text-gray-600 font-medium">Пшеница 3 класс • 92 500 ₸/т</div>
+      <div id="selected-mill-title" class="text-base font-bold text-gray-900">ТОО «Аруана-2010»</div>
+      <div id="selected-crop-title" class="text-xs text-gray-600 font-medium">Пшеница 3 класс • 92 000 ₸/т</div>
     </div>
 
     <div class="space-y-4 mb-6">
+      <!-- Выбор объема -->
       <div>
         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Объём партии (тонн)</label>
         <div class="grid grid-cols-4 gap-2 mb-2">
-          <button type="button" onclick="setVolume(30)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">30 т</button>
-          <button type="button" onclick="setVolume(60)" class="vol-btn border-2 border-brand-500 bg-brand-50 py-2 rounded-xl text-xs font-bold text-brand-500">60 т</button>
-          <button type="button" onclick="setVolume(120)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">120 т</button>
-          <button type="button" onclick="setVolume(300)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">300 т</button>
+          <button onclick="setVolume(30)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">30 т</button>
+          <button onclick="setVolume(60)" class="vol-btn border-2 border-brand-500 bg-brand-50 py-2 rounded-xl text-xs font-bold text-brand-500">60 т</button>
+          <button onclick="setVolume(120)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">120 т</button>
+          <button onclick="setVolume(300)" class="vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700">300 т</button>
         </div>
         <input type="number" id="volume-input" value="60" oninput="calculateDeal()" class="w-full border border-gray-200 rounded-2xl px-4 py-3 bg-gray-50 font-bold text-gray-900 outline-none focus:bg-white focus:border-brand-500">
       </div>
 
+      <!-- Расчет сделки -->
       <div class="bg-gray-900 text-white rounded-2xl p-4 space-y-2">
         <div class="text-xs text-gray-400 font-medium">Расчёт финансовой сделки:</div>
         <div class="flex justify-between items-center text-sm">
           <span class="text-gray-300">Выплата фермеру:</span>
-          <span id="calc-farmer-payout" class="font-extrabold text-emerald-400 text-base">5 550 000 ₸</span>
+          <span id="calc-farmer-payout" class="font-extrabold text-emerald-400 text-base">5 520 000 ₸</span>
         </div>
       </div>
 
+      <!-- Локация тока -->
       <div>
         <div class="flex justify-between items-center mb-2">
           <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Локация тока или поля</label>
-          <button type="button" onclick="getGPSLocation()" class="text-xs font-bold text-brand-500 flex items-center gap-1">
+          <button onclick="getGPSLocation()" class="text-xs font-bold text-brand-500 flex items-center gap-1">
             <i data-lucide="crosshair" class="w-3.5 h-3.5"></i> По GPS
           </button>
         </div>
@@ -145,7 +148,7 @@
       </div>
     </div>
 
-    <button type="button" onclick="submitLabRequest()" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
+    <button onclick="submitLabRequest()" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
       <i data-lucide="navigation" class="w-5 h-5"></i> Подтвердить и вызвать
     </button>
   </section>
@@ -165,11 +168,12 @@
         </div>
 
         <div class="text-xs text-gray-500 space-y-1">
-          <div><b>Закупщик:</b> <span id="ord-mill-name">ТОО «KMK-PIONEER»</span></div>
+          <div><b>Закупщик:</b> <span id="ord-mill-name">ТОО «Аруана-2010»</span></div>
           <div><b>Объем:</b> <span id="ord-volume-text">60 тонн</span></div>
           <div><b>Локация:</b> <span id="ord-location-text">с. Заречное, Ток №2</span></div>
         </div>
 
+        <!-- Готовый Паспорт Качества -->
         <div id="order-passport-box" class="hidden bg-brand-50/60 border border-brand-500/20 rounded-xl p-3 space-y-2">
           <div class="text-xs font-bold text-brand-700 flex items-center gap-1">
             <i data-lucide="file-check" class="w-4 h-4"></i> Паспорт качества лаборатории:
@@ -185,66 +189,32 @@
     </div>
   </section>
 
-  <!-- ================= 4. ЭКРАН ЛАБОРАНТА (ПОЧИНЕН! НЕ ВЫЛЕТАЕТ!) ================= -->
+  <!-- ================= 4. ЭКРАН ЛАБОРАНТА (СКРЫТЫЙ) ================= -->
   <section id="screen-lab-panel" class="screen p-4 space-y-4">
     <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
-      <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-        <h2 class="text-base font-bold text-gray-900">🧪 Панель замерщика в поле</h2>
-        <span class="text-xs font-bold text-brand-500 bg-brand-50 px-2 py-1 rounded-lg">Выезд #ORD-9021</span>
+      <h2 class="text-base font-bold text-gray-900">🧪 Ввод замера #ORD-9021</h2>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Клейковина (%)</label><input type="number" id="lab-gluten" value="25.5" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Влажность (%)</label><input type="number" id="lab-moisture" value="13.5" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Натура (г/л)</label><input type="number" id="lab-testweight" value="765" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
+        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Сорность (%)</label><input type="number" id="lab-trash" value="1.5" class="w-full border p-2 rounded-xl text-xs font-bold"></div>
       </div>
-
-      <div class="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-xl">
-        <div><b>Объект:</b> КХ «Дала» (Ток №2)</div>
-        <div><b>Партия:</b> 60 тонн (Пшеница 3 класс)</div>
-      </div>
-
-      <div class="space-y-3 pt-1">
-        <div>
-          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Номер пломбы / сейф-пакета</label>
-          <input type="text" id="lab-seal" value="ПАКЕТ-8821" class="w-full border border-gray-200 p-2.5 rounded-xl text-xs font-bold bg-white outline-none">
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Клейковина (%)</label>
-            <input type="number" id="lab-gluten" step="0.1" value="25.5" class="w-full border border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Влажность (%)</label>
-            <input type="number" id="lab-moisture" step="0.1" value="13.5" class="w-full border border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Натура (г/л)</label>
-            <input type="number" id="lab-testweight" value="765" class="w-full border border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Сорность (%)</label>
-            <input type="number" id="lab-trash" step="0.1" value="1.5" class="w-full border border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none">
-          </div>
-        </div>
-
-        <button type="button" onclick="saveLabPassport()" class="w-full bg-brand-500 hover:bg-brand-600 active:scale-95 text-white font-bold py-3.5 rounded-xl text-xs shadow-md transition-all">
-          ✅ Сохранить и передать Паспорт Качества
-        </button>
-      </div>
+      <button onclick="saveLabPassport()" class="w-full bg-brand-500 text-white font-bold py-3 rounded-xl text-xs shadow-md">
+        ✅ Отправить Паспорт Фермеру
+      </button>
     </div>
   </section>
 
   <!-- ================= BOTTOM NAVIGATION BAR ================= -->
   <nav id="bottom-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 h-16 flex items-center justify-around z-50 px-2 shadow-lg">
-    <button type="button" onclick="goToScreen('screen-mills')" id="nav-btn-mills" class="nav-btn flex flex-col items-center gap-0.5 text-brand-500">
+    <button onclick="goToScreen('screen-mills')" id="nav-btn-mills" class="nav-btn flex flex-col items-center gap-0.5 text-brand-500">
       <i data-lucide="building-2" class="w-5 h-5"></i>
       <span class="text-[10px] font-bold">Мельницы</span>
     </button>
 
-    <button type="button" onclick="goToScreen('screen-orders')" id="nav-btn-orders" class="nav-btn flex flex-col items-center gap-0.5 text-gray-400">
+    <button onclick="goToScreen('screen-orders')" id="nav-btn-orders" class="nav-btn flex flex-col items-center gap-0.5 text-gray-400">
       <i data-lucide="clipboard-list" class="w-5 h-5"></i>
       <span class="text-[10px] font-medium">Заявки</span>
-    </button>
-
-    <button type="button" onclick="goToScreen('screen-lab-panel')" id="nav-btn-lab" class="nav-btn flex flex-col items-center gap-0.5 text-gray-400">
-      <i data-lucide="flask-conical" class="w-5 h-5"></i>
-      <span class="text-[10px] font-medium">Лаборант</span>
     </button>
   </nav>
 
@@ -252,61 +222,51 @@
   <script>
     const SUPABASE_URL = 'https://itmswhovyndnczeavtev.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_Fuu-mGSsFCzaeifhQm4v7A_WJuYzWk2';
-    
-    // Прямое подключение клиента Supabase
-    const supabaseClient = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) { tg.expand(); tg.ready(); }
 
     let allMillsData = [];
-    let currentPricePerTon = 92500;
-    let selectedMillName = 'ТОО «Рамона»';
+    let currentPricePerTon = 92000;
+    let selectedMillName = 'ТОО «Аруана-2010»';
 
     function goToScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      const target = document.getElementById(screenId);
-      if (target) target.classList.add('active');
+      document.getElementById(screenId).classList.add('active');
 
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('text-brand-500');
         btn.classList.add('text-gray-400');
       });
 
-      const roleBadge = document.getElementById('role-badge');
-
-      if (screenId === 'screen-mills') {
-        document.getElementById('nav-btn-mills').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
-        if (roleBadge) roleBadge.innerText = 'Фермер';
-      } else if (screenId === 'screen-orders') {
-        document.getElementById('nav-btn-orders').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
-      } else if (screenId === 'screen-lab-panel') {
-        document.getElementById('nav-btn-lab').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
-        if (roleBadge) roleBadge.innerText = 'Лаборант';
-      }
+      if (screenId === 'screen-mills') document.getElementById('nav-btn-mills').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
+      if (screenId === 'screen-orders') document.getElementById('nav-btn-orders').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
     }
 
-    // Загрузка мельниц напрямую из Supabase
+    function switchAppRole(role) {
+      if (role === 'farmer') goToScreen('screen-mills');
+      if (role === 'lab') goToScreen('screen-lab-panel');
+      if (role === 'mill') alert('Интерфейс весовой мельницы доступен в веб-панели');
+    }
+
     async function fetchRealMills() {
       const container = document.getElementById('mills-list');
       container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">Загрузка мельниц из базы данных...</div>`;
 
       try {
-        if (!supabaseClient) throw new Error("Supabase клиент не найден");
-
-        // Запрос к таблице mills
-        const { data: mills, error } = await supabaseClient
-          .from('mills')
-          .select('*');
-
-        if (error) throw error;
+        let mills = null;
+        if (supabaseClient) {
+          const res = await supabaseClient.from('mills').select('*').eq('is_active', true);
+          mills = res.data;
+        }
 
         if (!mills || mills.length === 0) {
-          // Если таблица в Supabase пока пустая, подгружаем стандартные мельницы Костаная
           allMillsData = [
-            { id: 1, name: 'ТОО «KMK-PIONEER»', location: 'г. Костанай, ул. Дружбы 34', crop: 'Пшеница 3 кл.', price: 93000 },
-            { id: 2, name: 'ТОО «Рамона»', location: 'г. Костанай, ул. Элеваторная 1', crop: 'Пшеница 3 кл.', price: 92500 },
-            { id: 3, name: 'ТОО «Сарыколь-Элеватор»', location: 'п. Сарыколь, ул. Заводская', crop: 'Ячмень', price: 68000 }
+            { id: 1, name: 'ТОО «Аруана-2010»', location: 'г. Костанай, ул. Элеваторная, 1', crop: 'Пшеница 3 кл.', price: 92000, queue_info: 'Приемка 24/7' },
+            { id: 2, name: 'ТОО «Romana-Milk»', location: 'г. Костанай, Промзона', crop: 'Пшеница 3 кл.', price: 91000, queue_info: 'Очередь 2-3 авто' },
+            { id: 3, name: 'ТОО «Сарыколь-Элеватор»', location: 'Сарыкольский р-н, п. Сарыколь', crop: 'Ячмень', price: 68000, queue_info: 'Быстрая выгрузка' },
+            { id: 4, name: 'ТОО «Baiterek Flour»', location: 'Федоровский р-н, п. Федоровка', crop: 'Пшеница 4 кл.', price: 81000, queue_info: 'Приемка 24/7' }
           ];
         } else {
           allMillsData = mills;
@@ -314,43 +274,32 @@
 
         renderMills(allMillsData);
       } catch (err) {
-        console.error("Ошибка Supabase:", err);
-        // Запасной фоллбек на случай обрыва сети
-        allMillsData = [
-          { id: 1, name: 'ТОО «KMK-PIONEER»', location: 'г. Костанай, ул. Дружбы 34', crop: 'Пшеница 3 кл.', price: 93000 },
-          { id: 2, name: 'ТОО «Рамона»', location: 'г. Костанай, ул. Элеваторная 1', crop: 'Пшеница 3 кл.', price: 92500 },
-          { id: 3, name: 'ТОО «Сарыколь-Элеватор»', location: 'п. Сарыколь, ул. Заводская', crop: 'Ячмень', price: 68000 }
-        ];
-        renderMills(allMillsData);
+        console.error(err);
       }
     }
 
     function renderMills(list) {
       const container = document.getElementById('mills-list');
-      if (!container) return;
-
       container.innerHTML = list.map(mill => `
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
           <div class="flex justify-between items-start">
             <div>
               <h3 class="font-bold text-base text-gray-900">${mill.name}</h3>
-              <p class="text-xs text-gray-500">${mill.location || 'г. Костанай'}</p>
+              <p class="text-xs text-gray-500">${mill.location}</p>
             </div>
-            <span class="bg-brand-50 text-brand-500 font-bold text-xs px-2.5 py-1 rounded-full">${mill.crop || 'Пшеница 3 кл.'}</span>
+            <span class="bg-brand-50 text-brand-500 font-bold text-xs px-2.5 py-1 rounded-full">${mill.crop}</span>
           </div>
           <div class="flex justify-between items-center pt-2 border-t border-gray-50">
             <div>
               <div class="text-[10px] text-gray-400 font-medium">Закупка:</div>
-              <div class="text-lg font-black text-brand-500">${Number(mill.price).toLocaleString('ru-RU')} ₸ <span class="text-xs font-normal text-gray-400">/ т</span></div>
+              <div class="text-lg font-black text-brand-500">${mill.price.toLocaleString('ru-RU')} ₸ <span class="text-xs font-normal text-gray-400">/ т</span></div>
             </div>
-            <button type="button" onclick="openRequestForm('${mill.name}', '${mill.crop || 'Пшеница 3 кл.'}', ${mill.price})" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-brand-500/20 transition-all">
+            <button onclick="openRequestForm('${mill.name}', '${mill.crop}', ${mill.price})" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-brand-500/20 transition-all">
               Продать зерно
             </button>
           </div>
         </div>
       `).join('');
-
-      if (window.lucide) window.lucide.createIcons();
     }
 
     function filterCrops(cropName, btn) {
@@ -362,7 +311,7 @@
       if (cropName === 'ALL') {
         renderMills(allMillsData);
       } else {
-        const filtered = allMillsData.filter(m => m.crop && m.crop.includes(cropName));
+        const filtered = allMillsData.filter(m => m.crop.includes(cropName));
         renderMills(filtered);
       }
     }
@@ -371,7 +320,7 @@
       selectedMillName = name;
       currentPricePerTon = price;
       document.getElementById('selected-mill-title').innerText = name;
-      document.getElementById('selected-crop-title').innerText = `${crop} • ${Number(price).toLocaleString('ru-RU')} ₸/т`;
+      document.getElementById('selected-crop-title').innerText = `${crop} • ${price.toLocaleString('ru-RU')} ₸/т`;
       calculateDeal();
       goToScreen('screen-lab-request');
     }
@@ -382,4 +331,49 @@
     }
 
     function calculateDeal() {
-      const vol = parseFloat(document.getElementById('volume-
+      const vol = parseFloat(document.getElementById('volume-input').value) || 0;
+      const total = vol * currentPricePerTon;
+      document.getElementById('calc-farmer-payout').innerText = `${total.toLocaleString('ru-RU')} ₸`;
+    }
+
+    function getGPSLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          document.getElementById('location-input').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+        });
+      }
+    }
+
+    function submitLabRequest() {
+      const vol = document.getElementById('volume-input').value;
+      const loc = document.getElementById('location-input').value;
+
+      document.getElementById('ord-mill-name').innerText = selectedMillName;
+      document.getElementById('ord-volume-text').innerText = `${vol} тонн`;
+      document.getElementById('ord-location-text').innerText = loc;
+
+      alert('Заявка создана! Диспетчер и лаборант получили уведомление.');
+      goToScreen('screen-orders');
+    }
+
+    function saveLabPassport() {
+      document.getElementById('passport-gluten').innerText = `${document.getElementById('lab-gluten').value}%`;
+      document.getElementById('passport-moisture').innerText = `${document.getElementById('lab-moisture').value}%`;
+      document.getElementById('passport-testweight').innerText = document.getElementById('lab-testweight').value;
+      document.getElementById('passport-trash').innerText = `${document.getElementById('lab-trash').value}%`;
+
+      document.getElementById('order-passport-box').classList.remove('hidden');
+      document.getElementById('order-status-badge').innerText = 'Завершено';
+      document.getElementById('order-status-badge').className = 'bg-brand-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-full';
+
+      alert('Паспорт сохранен и отправлен фермеру!');
+      goToScreen('screen-orders');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) window.lucide.createIcons();
+      fetchRealMills();
+    });
+  </script>
+</body>
+</html>
