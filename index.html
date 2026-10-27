@@ -225,11 +225,18 @@
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) { tg.expand(); tg.ready(); }
+    if (tg) { 
+      tg.expand(); 
+      tg.ready(); 
+    }
 
     let allMillsData = [];
     let currentPricePerTon = 92000;
     let selectedMillName = 'ТОО «Аруана-2010»';
+
+    function updateIcons() {
+      if (window.lucide) window.lucide.createIcons();
+    }
 
     function goToScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -242,6 +249,8 @@
 
       if (screenId === 'screen-mills') document.getElementById('nav-btn-mills').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
       if (screenId === 'screen-orders') document.getElementById('nav-btn-orders').className = 'nav-btn flex flex-col items-center gap-0.5 text-brand-500';
+      
+      updateIcons();
     }
 
     function switchAppRole(role) {
@@ -300,6 +309,7 @@
           </div>
         </div>
       `).join('');
+      updateIcons();
     }
 
     function filterCrops(cropName, btn) {
@@ -327,6 +337,15 @@
 
     function setVolume(vol) {
       document.getElementById('volume-input').value = vol;
+
+      // Динамическое обновление обводки выбранной кнопки объёма
+      document.querySelectorAll('.vol-btn').forEach(btn => {
+        btn.className = 'vol-btn border border-gray-200 py-2 rounded-xl text-xs font-bold text-gray-700';
+        if (parseInt(btn.innerText) === vol) {
+          btn.className = 'vol-btn border-2 border-brand-500 bg-brand-50 py-2 rounded-xl text-xs font-bold text-brand-500';
+        }
+      });
+
       calculateDeal();
     }
 
@@ -340,6 +359,8 @@
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
           document.getElementById('location-input').value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+        }, () => {
+          alert('Не удалось получить доступ к геолокации');
         });
       }
     }
@@ -351,6 +372,10 @@
       document.getElementById('ord-mill-name').innerText = selectedMillName;
       document.getElementById('ord-volume-text').innerText = `${vol} тонн`;
       document.getElementById('ord-location-text').innerText = loc;
+
+      if (tg) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
 
       alert('Заявка создана! Диспетчер и лаборант получили уведомление.');
       goToScreen('screen-orders');
@@ -366,14 +391,18 @@
       document.getElementById('order-status-badge').innerText = 'Завершено';
       document.getElementById('order-status-badge').className = 'bg-brand-50 text-brand-500 text-[10px] font-bold px-2.5 py-1 rounded-full';
 
+      if (tg) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+
       alert('Паспорт сохранен и отправлен фермеру!');
       goToScreen('screen-orders');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide) window.lucide.createIcons();
+      updateIcons();
       fetchRealMills();
     });
   </script>
 </body>
-</html> 
+</html>
