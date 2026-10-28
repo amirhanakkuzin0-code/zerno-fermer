@@ -47,7 +47,6 @@
     .screen { display: none; }
     .screen.active { display: block; }
 
-    /* Стили для печати PDF-паспорта */
     @media print {
       body * { visibility: hidden; }
       #passport-print-modal, #passport-print-modal * { visibility: visible; }
@@ -181,16 +180,14 @@
     </button>
   </section>
 
-  <!-- ================= 3. ЭКРАН: СПИСОК ЗАЯВОК И ПАСПОРТ (ДЛЯ ФЕРМЕРА) ================= -->
+  <!-- ================= 3. ЭКРАН: СПИСОК ЗАЯВОК И ПАСПОРТ ================= -->
   <section id="screen-orders" class="screen">
     <div class="bg-white p-4 border-b border-gray-100 sticky top-[53px] z-30">
       <h2 class="text-xl font-bold text-gray-900">Мои заявки</h2>
       <p class="text-xs text-gray-500">История вызовов и Паспорта качества</p>
     </div>
 
-    <div id="farmer-orders-list" class="p-4 space-y-3">
-      <!-- Динамический список карточек фермера -->
-    </div>
+    <div id="farmer-orders-list" class="p-4 space-y-3"></div>
   </section>
 
   <!-- ================= 4. ЭКРАН ЛАБОРАНТА ================= -->
@@ -255,11 +252,10 @@
     </div>
   </section>
 
-  <!-- ================= 5. МОДАЛЬНОЕ ОКНО: ОФИЦИАЛЬНЫЙ ПАСПОРТ КАЧЕСТВА (PDF / ПЕЧАТЬ) ================= -->
+  <!-- ================= 5. МОДАЛЬНОЕ ОКНО: ОФИЦИАЛЬНЫЙ ПАСПОРТ КАЧЕСТВА ================= -->
   <div id="passport-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm p-4">
     <div id="passport-print-modal" class="bg-white w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl relative border-2 border-brand-500/20">
       
-      <!-- Шапка бланка -->
       <div class="flex justify-between items-start border-b border-gray-200 pb-4">
         <div>
           <div class="flex items-center gap-1.5 text-brand-600 font-extrabold text-base">
@@ -268,59 +264,56 @@
           <p class="text-[11px] text-gray-500">Костанайская область, мобильный комплекс экспресс-анализа</p>
         </div>
         <div class="text-right">
-          <span id="p-doc-id" class="text-xs font-extrabold text-gray-900 bg-gray-100 px-2.5 py-1 rounded-lg">ПАСПОРТ #ORD-9021</span>
-          <div id="p-date" class="text-[10px] text-gray-400 mt-1">16.10.2026, 14:35</div>
+          <span id="p-doc-id" class="text-xs font-extrabold text-gray-900 bg-gray-100 px-2.5 py-1 rounded-lg">ПАСПОРТ</span>
+          <div id="p-date" class="text-[10px] text-gray-400 mt-1">16.10.2026</div>
         </div>
       </div>
 
-      <!-- Информация о партии -->
       <div class="grid grid-cols-2 gap-3 text-xs bg-brand-50/50 p-3.5 rounded-2xl border border-brand-500/10">
         <div>
           <span class="text-gray-400 text-[10px] uppercase font-bold block">Покупатель:</span>
-          <span id="p-mill" class="font-bold text-gray-900">ТОО «Аруана-2010»</span>
+          <span id="p-mill" class="font-bold text-gray-900">-</span>
         </div>
         <div>
           <span class="text-gray-400 text-[10px] uppercase font-bold block">Культура:</span>
-          <span id="p-crop" class="font-bold text-gray-900">Пшеница 3 кл.</span>
+          <span id="p-crop" class="font-bold text-gray-900">-</span>
         </div>
         <div>
           <span class="text-gray-400 text-[10px] uppercase font-bold block">Фермер / Хозяйство:</span>
-          <span id="p-farmer" class="font-bold text-gray-900">Амирхан Аккузин</span>
+          <span id="p-farmer" class="font-bold text-gray-900">-</span>
         </div>
         <div>
           <span class="text-gray-400 text-[10px] uppercase font-bold block">Объём партии:</span>
-          <span id="p-volume" class="font-bold text-brand-600">60 тонн</span>
+          <span id="p-volume" class="font-bold text-brand-600">-</span>
         </div>
         <div class="col-span-2">
           <span class="text-gray-400 text-[10px] uppercase font-bold block">Локация отбора пробы (Ток):</span>
-          <span id="p-location" class="font-semibold text-gray-800">с. Заречное, Ток №2</span>
+          <span id="p-location" class="font-semibold text-gray-800">-</span>
         </div>
       </div>
 
-      <!-- Таблица результатов анализа -->
       <div>
         <div class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Результаты лабораторного анализа:</div>
         <div class="grid grid-cols-2 gap-2 text-center">
           <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-            <div id="p-gluten" class="font-black text-brand-600 text-lg">25.5%</div>
+            <div id="p-gluten" class="font-black text-brand-600 text-lg">-</div>
             <div class="text-[11px] text-gray-500 font-medium">Клейковина (ГОСТ)</div>
           </div>
           <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-            <div id="p-moisture" class="font-black text-brand-600 text-lg">13.5%</div>
+            <div id="p-moisture" class="font-black text-brand-600 text-lg">-</div>
             <div class="text-[11px] text-gray-500 font-medium">Влажность</div>
           </div>
           <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-            <div id="p-testweight" class="font-black text-brand-600 text-lg">765</div>
+            <div id="p-testweight" class="font-black text-brand-600 text-lg">-</div>
             <div class="text-[11px] text-gray-500 font-medium">Натура (г/л)</div>
           </div>
           <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-            <div id="p-trash" class="font-black text-brand-600 text-lg">1.5%</div>
+            <div id="p-trash" class="font-black text-brand-600 text-lg">-</div>
             <div class="text-[11px] text-gray-500 font-medium">Сорная примесь</div>
           </div>
         </div>
       </div>
 
-      <!-- Штамп и QR-код -->
       <div class="flex items-center justify-between pt-2 border-t border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 bg-brand-50 border border-brand-500/30 rounded-xl flex items-center justify-center text-brand-600 font-black text-xs text-center leading-tight">
@@ -332,13 +325,11 @@
             <div class="text-brand-600 font-semibold">Электронная подпись верифицирована</div>
           </div>
         </div>
-        <!-- Имитация QR-кода -->
         <div class="w-14 h-14 bg-gray-900 rounded-xl p-1 flex items-center justify-center text-white text-[9px] text-center font-mono">
           [QR CODE]
         </div>
       </div>
 
-      <!-- Кнопки управления (скрываются при печати) -->
       <div class="flex gap-2 pt-2 no-print">
         <button onclick="closePassportModal()" class="w-1/3 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl text-xs">Закрыть</button>
         <button onclick="window.print()" class="w-2/3 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-brand-500/20 flex items-center justify-center gap-1.5">
@@ -385,7 +376,6 @@
       telegramId: ''
     };
 
-    // Центральный массив заявок
     let ordersList = [
       {
         id: 'ORD-9021',
@@ -399,19 +389,6 @@
         statusText: 'Завершено',
         time: '14:20',
         passport: { gluten: 25.5, moisture: 13.5, testweight: 765, trash: 1.5 }
-      },
-      {
-        id: 'ORD-8812',
-        mill: 'ТОО «Romana-Milk»',
-        crop: 'Пшеница 3 кл.',
-        volume: 120,
-        farmer: 'Амирхан Аккузин',
-        phone: '+7 705 555 33 22',
-        location: 'Сарыкольский р-н, с. Тимирязевка',
-        status: 'NEW',
-        statusText: 'Ожидает выезда',
-        time: '15:05',
-        passport: null
       }
     ];
 
@@ -468,6 +445,33 @@
       if (tg && tg.CloudStorage) {
         tg.CloudStorage.setItem('farmer_profile', JSON.stringify(userProfile), (err) => {});
       }
+    }
+
+    // 🔔 ФУНКЦИЯ ОТПРАВКИ PUSH-УВЕДОМЛЕНИЙ ЧЕРЕЗ TELEGRAM BOT API
+    function sendTelegramBotNotification(textMessage) {
+      // Проверяем, есть ли ID пользователя Telegram
+      const chatId = userProfile.telegramId;
+      if (!chatId) {
+        console.log('Telegram ID не найден, уведомление не отправлено в чат.');
+        return;
+      }
+
+      // Если вы развернете бэкенд (например, Supabase Edge Function или Node.js сервер),
+      // здесь будет fetch на ваш эндпоинт. Для демонстрации вызывается напрямую Bot API (требует CORS/бэкенд в продакшне):
+      const BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE'; 
+      const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+      // Имитация отправки / Реальный запрос
+      console.log(`[Telegram Bot Webhook] Отправка пользователю ${chatId}: ${textMessage}`);
+      
+      // Пример вызова (в реальном проекте лучше слать через свой сервер, чтобы не светить токен):
+      /*
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: textMessage, parse_mode: 'HTML' })
+      }).catch(err => console.log('Ошибка отправки уведомления:', err));
+      */
     }
 
     function goToScreen(screenId) {
@@ -633,11 +637,13 @@
 
       if (tg) tg.HapticFeedback.notificationOccurred('success');
 
+      // 🔔 Отправляем боту уведомление о создании заявки
+      sendTelegramBotNotification(`🌾 <b>Новая заявка #${newId} создана!</b>\nПокупатель: ${selectedMillName}\nОбъем: ${vol} т\nЛокация: ${loc}`);
+
       alert(`Заявка ${newId} создана! Лаборант выехал на ваш ток.`);
       goToScreen('screen-orders');
     }
 
-    /* РЕНДЕР ЭКРАНА ФЕРМЕРА С КНОПКОЙ СКАЧИВАНИЯ ПАСПОРТА */
     function renderFarmerOrders() {
       const container = document.getElementById('farmer-orders-list');
       if (ordersList.length === 0) {
@@ -692,7 +698,6 @@
       updateIcons();
     }
 
-    /* ОТКРЫТИЕ МОДАЛКИ ПАСПОРТА */
     function openPassportModal(orderId) {
       const ord = ordersList.find(o => o.id === orderId);
       if (!ord || !ord.passport) return;
@@ -717,7 +722,6 @@
       document.getElementById('passport-modal').classList.add('hidden');
     }
 
-    /* РЕНДЕР ЭКРАНА ЛАБОРАНТА */
     function renderLabOrders(filter) {
       const container = document.getElementById('lab-orders-list');
       
@@ -790,12 +794,17 @@
       renderLabOrders(filter);
     }
 
+    // 🔔 Смена статуса: Лаборант выехал на ток
     function acceptLabOrder(orderId) {
       const ord = ordersList.find(o => o.id === orderId);
       if (ord) {
         ord.status = 'IN_PROGRESS';
         ord.statusText = 'Лаборант в пути';
         if (tg) tg.HapticFeedback.notificationOccurred('success');
+        
+        // Отправка уведомления фермеру
+        sendTelegramBotNotification(`🧪 <b>Лаборант выехал на ваш объект!</b>\nЗаявка: #${ord.id}\nЛокация: ${ord.location}\n⏱ Ожидаемое время прибытия: ~35 минут.`);
+
         renderLabOrders('ALL');
       }
     }
@@ -815,15 +824,20 @@
       activeModalOrderId = null;
     }
 
+    // 🔔 Смена статуса: Замеры готовы и паспорт отправлен
     function saveLabPassport() {
       if (!activeModalOrderId) return;
 
       const ord = ordersList.find(o => o.id === activeModalOrderId);
       if (ord) {
+        const glutenVal = document.getElementById('lab-gluten').value;
+        const moistureVal = document.getElementById('lab-moisture').value;
+        const testWeightVal = document.getElementById('lab-testweight').value;
+
         ord.passport = {
-          gluten: parseFloat(document.getElementById('lab-gluten').value) || 25.0,
-          moisture: parseFloat(document.getElementById('lab-moisture').value) || 13.0,
-          testweight: parseInt(document.getElementById('lab-testweight').value) || 760,
+          gluten: parseFloat(glutenVal) || 25.0,
+          moisture: parseFloat(moistureVal) || 13.0,
+          testweight: parseInt(testWeightVal) || 760,
           trash: parseFloat(document.getElementById('lab-trash').value) || 1.5
         };
 
@@ -831,6 +845,9 @@
         ord.statusText = 'Завершено';
 
         if (tg) tg.HapticFeedback.notificationOccurred('success');
+
+        // Отправка уведомления о готовности паспорта
+        sendTelegramBotNotification(`📄 <b>Паспорт качества по заявке #${ord.id} готов!</b>\n🌾 Клейковина: ${glutenVal}%\n💧 Влажность: ${moistureVal}%\n⚖️ Натура: ${testWeightVal} г/л\n\nМожете открывать приложение и скачивать PDF-бланк для водителя!`);
 
         closeLabModal();
         renderLabOrders('ALL');
