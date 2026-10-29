@@ -73,7 +73,7 @@
     <select id="role-selector" onchange="switchAppRole(this.value)" class="bg-gray-100 text-gray-600 text-[11px] font-bold py-1.5 px-2.5 rounded-xl outline-none">
       <option value="farmer">🌾 Фермер</option>
       <option value="lab">🧪 Лаборант</option>
-      <option value="mill">🏭 Мельница</option>
+      <option value="mill">🏭 Мельница (Весовая)</option>
     </select>
   </header>
 
@@ -122,7 +122,7 @@
         <button onclick="filterCrops('Ячмень', this)" class="crop-btn bg-gray-100 text-gray-600 font-medium text-xs px-3.5 py-1.5 rounded-xl whitespace-nowrap">Ячмень</button>
       </div>
 
-      <!-- 🗂 Переключатель сортировки закупщиков -->
+      <!-- 🗂 Сортировка закупщиков -->
       <div class="flex gap-2 pt-1 border-t border-gray-100">
         <button onclick="sortMills('price', this)" class="sort-btn active bg-gray-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
           💰 Самые дорогие
@@ -136,7 +136,6 @@
       </div>
     </div>
 
-    <!-- Список карточек мельниц -->
     <div id="mills-list" class="p-4 space-y-3">
       <div class="text-center text-gray-400 py-8 text-sm">Загрузка мельниц из базы данных...</div>
     </div>
@@ -283,7 +282,65 @@
     </div>
   </section>
 
-  <!-- ================= 5. МОДАЛЬНОЕ ОКНО: ОФИЦИАЛЬНЫЙ ПАСПОРТ КАЧЕСТВА ================= -->
+  <!-- ================= 5. ЭКРАН: ЛИЧНЫЙ КАБИНЕТ МЕЛЬНИЦЫ (ВЕСОВАЯ ПАНЕЛЬ) ================= -->
+  <section id="screen-mill-panel" class="screen">
+    <div class="bg-white p-4 border-b border-gray-100 sticky top-[53px] z-30 space-y-2">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">🏭 Весовая Мельницы</h2>
+          <p class="text-xs text-gray-500">Контроль заезда машин и закрытие сделок</p>
+        </div>
+        <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> КПП Весовая
+        </span>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="filterMillOrders('ALL', this)" class="mill-filter-btn active bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Все машины</button>
+        <button onclick="filterMillOrders('READY', this)" class="mill-filter-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-xl">Ожидаем на весовой</button>
+        <button onclick="filterMillOrders('PAID', this)" class="mill-filter-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-xl">Оплачено / Сдано</button>
+      </div>
+    </div>
+
+    <div id="mill-orders-list" class="p-4 space-y-3"></div>
+
+    <!-- Модальное окно подтверждения веса Брутто/Нетто -->
+    <div id="mill-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end justify-center backdrop-blur-sm p-4">
+      <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 id="mill-modal-title" class="text-base font-extrabold text-gray-900">Взвешивание машины</h3>
+            <p id="mill-modal-sub" class="text-xs text-gray-500">Проверка документов и фиксация веса</p>
+          </div>
+          <button onclick="closeMillModal()" class="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm">✕</button>
+        </div>
+
+        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 space-y-3 text-xs">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Фактический вес по весовой (тонн)</label>
+            <input type="number" step="0.1" id="mill-fact-weight" value="60" class="w-full border border-gray-200 p-2.5 rounded-xl text-sm font-bold bg-white outline-none focus:border-brand-500">
+          </div>
+          <div class="flex justify-between text-gray-600 pt-1 border-t border-gray-200">
+            <span>Цена закупки:</span>
+            <span id="mill-modal-price" class="font-extrabold text-brand-600">92 000 ₸/т</span>
+          </div>
+          <div class="flex justify-between text-gray-900 text-sm font-extrabold pt-1">
+            <span>Итого к выплате фермеру:</span>
+            <span id="mill-modal-total" class="text-emerald-600">5 520 000 ₸</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button onclick="closeMillModal()" class="w-1/3 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl text-xs">Отмена</button>
+          <button onclick="confirmMillWeighing()" class="w-2/3 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-brand-500/20">
+            💰 Подтвердить заезд и выплату
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6. МОДАЛЬНОЕ ОКНО: ПАСПОРТ КАЧЕСТВА ================= -->
   <div id="passport-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm p-4">
     <div id="passport-print-modal" class="bg-white w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl relative border-2 border-brand-500/20">
       
@@ -371,7 +428,7 @@
     </div>
   </div>
 
-  <!-- ================= 6. МОДАЛЬНОЕ ОКНО: ЭЛЕКТРОННАЯ ТТН ДЛЯ ВОДИТЕЛЯ ================= -->
+  <!-- ================= 7. МОДАЛЬНОЕ ОКНО: ЭЛЕКТРОННАЯ ТТН ================= -->
   <div id="ttn-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl relative border-2 border-gray-900/10">
       
@@ -388,7 +445,6 @@
         </div>
       </div>
 
-      <!-- Данные по перевозке -->
       <div class="grid grid-cols-2 gap-3 text-xs bg-gray-50 p-3.5 rounded-2xl border border-gray-200">
         <div>
           <span class="text-gray-400 text-[10px] uppercase font-bold block">Отправитель (Фермер):</span>
@@ -412,7 +468,6 @@
         </div>
       </div>
 
-      <!-- Поля для водителя -->
       <div class="space-y-2 bg-brand-50/40 p-3.5 rounded-2xl border border-brand-500/20 text-xs">
         <div class="font-bold text-brand-700 uppercase tracking-wider text-[10px]">Данные транспортного средства:</div>
         <div class="grid grid-cols-2 gap-2">
@@ -442,7 +497,7 @@
     </div>
   </div>
 
-  <!-- ================= 7. МОДАЛЬНОЕ ОКНО: ГРАФИК ЦЕН ================= -->
+  <!-- ================= 8. МОДАЛЬНОЕ ОКНО: ГРАФИК ЦЕН ================= -->
   <div id="chart-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl relative">
       <div class="flex justify-between items-center border-b border-gray-100 pb-3">
@@ -553,6 +608,7 @@
         id: 'ORD-9021',
         mill: 'ТОО «Аруана-2010»',
         crop: 'Пшеница 3 кл.',
+        pricePerTon: 92000,
         volume: 60,
         farmer: 'КХ «Агро-Костанай»',
         phone: '+7 777 123 45 67',
@@ -562,32 +618,35 @@
         statusText: 'Лаборант в пути',
         time: '14:20',
         labTech: currentLabTech,
-        passport: null
+        passport: null,
+        ttn: { number: 9021, truck: 'КамАЗ (777 KST 10)', driver: 'Нурлан Султанов' }
       },
       {
         id: 'ORD-8812',
         mill: 'ТОО «Romana-Milk»',
         crop: 'Пшеница 3 кл.',
+        pricePerTon: 91000,
         volume: 120,
         farmer: 'Амирхан Аккузин',
         phone: '+7 705 555 33 22',
         farmerTg: 'amir_ak',
         location: 'Сарыкольский р-н, с. Тимирязевка',
         status: 'DONE',
-        statusText: 'Завершено',
+        statusText: 'Паспорт готов (Ожидает весовую)',
         time: '11:10',
         labTech: currentLabTech,
-        passport: { gluten: 25.5, moisture: 13.5, testweight: 765, trash: 1.5 }
+        passport: { gluten: 25.5, moisture: 13.5, testweight: 765, trash: 1.5 },
+        ttn: { number: 8812, truck: 'МАЗ (555 KST 10)', driver: 'Алексей Петров' }
       }
     ];
 
     let activeModalOrderId = null;
+    let activeMillOrderId = null;
 
     function updateIcons() {
       if (window.lucide) window.lucide.createIcons();
     }
 
-    /* ☀️ УПРАВЛЕНИЕ АГРОМЕТЕОВИДЖЕТОМ */
     function updateWeatherWidget() {
       const region = document.getElementById('weather-region-select').value;
       const descEl = document.getElementById('weather-desc');
@@ -697,14 +756,18 @@
       if (screenId === 'screen-lab-panel') {
         renderLabOrders('ALL');
       }
+      if (screenId === 'screen-mill-panel') {
+        renderMillOrders('ALL');
+      }
       
       updateIcons();
     }
 
+    /* ПЕРЕКЛЮЧАТЕЛЬ РОЛЕЙ (Фермер / Лаборант / Мельница) */
     function switchAppRole(role) {
       if (role === 'farmer') goToScreen('screen-mills');
       if (role === 'lab') goToScreen('screen-lab-panel');
-      if (role === 'mill') alert('Интерфейс весовой мельницы доступен в веб-панели');
+      if (role === 'mill') goToScreen('screen-mill-panel');
     }
 
     async function fetchRealMills() {
@@ -735,7 +798,6 @@
       }
     }
 
-    /* 🗂 СОРТИРОВКА ЗАКУПЩИКОВ */
     function sortMills(criteria, btn) {
       document.querySelectorAll('.sort-btn').forEach(b => {
         b.className = 'sort-btn bg-gray-100 text-gray-600 text-[11px] font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1';
@@ -888,6 +950,7 @@
         id: newId,
         mill: selectedMillName,
         crop: selectedCropName,
+        pricePerTon: currentPricePerTon,
         volume: vol,
         farmer: farmerName,
         phone: farmerPhone,
@@ -898,11 +961,7 @@
         time: timeStr,
         labTech: currentLabTech,
         passport: null,
-        ttn: {
-          number: Math.floor(10000 + Math.random() * 90000),
-          truck: 'КамАЗ (777 KST 10)',
-          driver: 'Нурлан Султанов'
-        }
+        ttn: { number: Math.floor(1000 + Math.random() * 9000), truck: 'КамАЗ (777 KST 10)', driver: 'Нурлан Султанов' }
       };
 
       ordersList.unshift(newOrder);
@@ -914,7 +973,7 @@
       goToScreen('screen-orders');
     }
 
-    /* РЕНДЕР ЭКРАНА ФЕРМЕРА С КНОПКАМИ ПАСПОРТА И ТТН */
+    /* РЕНДЕР ЗАЯВОк ФЕРМЕРА */
     function renderFarmerOrders() {
       const container = document.getElementById('farmer-orders-list');
       if (ordersList.length === 0) {
@@ -924,7 +983,7 @@
 
       container.innerHTML = ordersList.map(ord => {
         let badgeStyle = 'bg-amber-100 text-amber-700';
-        if (ord.status === 'DONE') badgeStyle = 'bg-brand-50 text-brand-500';
+        if (ord.status === 'DONE' || ord.status === 'PAID') badgeStyle = 'bg-brand-50 text-brand-500';
         if (ord.status === 'NEW') badgeStyle = 'bg-blue-100 text-blue-700';
 
         let passportHTML = '';
@@ -945,39 +1004,9 @@
                   <i data-lucide="truck" class="w-3.5 h-3.5"></i> Электронная ТТН
                 </button>
               </div>
-
-              <div class="grid grid-cols-2 gap-2 text-center pt-1">
-                <div class="bg-white p-2 rounded-lg border border-gray-100"><div class="font-extrabold text-brand-500 text-sm">${ord.passport.gluten}%</div><div class="text-[10px] text-gray-400">Клейковина</div></div>
-                <div class="bg-white p-2 rounded-lg border border-gray-100"><div class="font-extrabold text-brand-500 text-sm">${ord.passport.moisture}%</div><div class="text-[10px] text-gray-400">Влажность</div></div>
-              </div>
             </div>
           `;
         }
-
-        const labTech = ord.labTech || currentLabTech;
-        const contactButtonsHTML = `
-          <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2 mt-2">
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-black text-xs">🧪</div>
-                <div>
-                  <div class="text-xs font-bold text-gray-900">${labTech.name}</div>
-                  <div class="text-[10px] text-gray-400">Мобильный лаборант</div>
-                </div>
-              </div>
-              <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">На линии</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-1">
-              <a href="tel:${labTech.phone}" class="bg-white border border-gray-200 text-gray-800 hover:bg-gray-100 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-sm">
-                <i data-lucide="phone" class="w-3.5 h-3.5 text-brand-500"></i> Позвонить
-              </a>
-              <button onclick="openTelegramChat('${labTech.telegramUsername}')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-sm">
-                <i data-lucide="send" class="w-3.5 h-3.5"></i> Telegram
-              </button>
-            </div>
-          </div>
-        `;
 
         return `
           <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
@@ -990,10 +1019,8 @@
               <div><b>Закупщик:</b> ${ord.mill}</div>
               <div><b>Объем:</b> ${ord.volume} тонн (${ord.crop})</div>
               <div><b>Локация:</b> ${ord.location}</div>
-              <div><b>Создано:</b> ${ord.time}</div>
             </div>
 
-            ${contactButtonsHTML}
             ${passportHTML}
           </div>
         `;
@@ -1002,7 +1029,145 @@
       updateIcons();
     }
 
-    /* ОТКРЫТИЕ ПАСПОРТА */
+    /* РЕНДЕР ПАНЕЛИ ЛАБОРАНТА */
+    function renderLabOrders(filter) {
+      const container = document.getElementById('lab-orders-list');
+      let filtered = ordersList;
+      if (filter === 'PENDING') filtered = ordersList.filter(o => o.status === 'NEW' || o.status === 'IN_PROGRESS');
+      if (filter === 'COMPLETED') filtered = ordersList.filter(o => o.status === 'DONE' || o.status === 'PAID');
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">В этой категории нет заявок</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(ord => {
+        let statusBadge = '';
+        let actionBtn = '';
+
+        if (ord.status === 'NEW') {
+          statusBadge = `<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Новая</span>`;
+          actionBtn = `<button onclick="acceptLabOrder('${ord.id}')" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Выехать на ток</button>`;
+        } else if (ord.status === 'IN_PROGRESS') {
+          statusBadge = `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full">В пути</span>`;
+          actionBtn = `<button onclick="openLabModal('${ord.id}')" class="w-full bg-gray-900 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Ввести замеры качества</button>`;
+        } else {
+          statusBadge = `<span class="bg-brand-50 text-brand-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Завершено</span>`;
+          actionBtn = `<div class="text-[11px] text-brand-600 font-semibold bg-brand-50 p-2 rounded-xl text-center">✅ Паспорт передан на весовую мельницы</div>`;
+        }
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-extrabold text-sm text-gray-900">#${ord.id}</h3>
+                <div class="text-xs font-semibold text-gray-700">${ord.mill}</div>
+              </div>
+              ${statusBadge}
+            </div>
+            <div class="bg-gray-50 p-2.5 rounded-xl text-xs text-gray-600 space-y-1">
+              <div>👤 <b>Фермер:</b> ${ord.farmer}</div>
+              <div>📍 <b>Локация:</b> ${ord.location}</div>
+              <div>🌾 <b>Партия:</b> ${ord.volume} т (${ord.crop})</div>
+            </div>
+            ${actionBtn}
+          </div>
+        `;
+      }).join('');
+      updateIcons();
+    }
+
+    /* РЕНДЕР ПАНЕЛИ МЕЛЬНИЦЫ (ВЕСОВОЙ) */
+    function renderMillOrders(filter) {
+      const container = document.getElementById('mill-orders-list');
+      
+      let filtered = ordersList;
+      if (filter === 'READY') filtered = ordersList.filter(o => o.status === 'DONE');
+      if (filter === 'PAID') filtered = ordersList.filter(o => o.status === 'PAID');
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">На весовой нет машин в этой категории</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(ord => {
+        let badge = ord.status === 'PAID' 
+          ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">Оплачено / Сдано ✅</span>` 
+          : `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded-full">Ожидает весовую ⏳</span>`;
+
+        let actionBtn = ord.status === 'PAID'
+          ? `<div class="text-xs text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl text-center">💸 Выплата фермеру произведена (${(ord.volume * ord.pricePerTon).toLocaleString('ru-RU')} ₸)</div>`
+          : `<button onclick="openMillModal('${ord.id}')" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md flex items-center justify-center gap-1">
+               <i data-lucide="scale" class="w-4 h-4"></i> Взвесить и закрыть сделку
+             </button>`;
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-extrabold text-sm text-gray-900">Заявка #${ord.id} (${ord.mill})</h3>
+                <div class="text-xs text-gray-500">Водитель: <b>${ord.ttn?.driver || 'Нурлан'}</b> (${ord.ttn?.truck || 'КамАЗ'})</div>
+              </div>
+              ${badge}
+            </div>
+
+            <div class="bg-gray-50 p-2.5 rounded-xl text-xs text-gray-700 space-y-1">
+              <div>👤 <b>Фермер:</b> ${ord.farmer} (${ord.phone})</div>
+              <div>🌾 <b>Культура:</b> ${ord.crop} • <b>${ord.volume} т</b></div>
+              <div>🧪 <b>Паспорт качества:</b> Клейковина ${ord.passport?.gluten || '-'}% | Влажность ${ord.passport?.moisture || '-'}%</div>
+            </div>
+
+            ${actionBtn}
+          </div>
+        `;
+      }).join('');
+      updateIcons();
+    }
+
+    function filterMillOrders(filter, btn) {
+      document.querySelectorAll('.mill-filter-btn').forEach(b => {
+        b.className = 'mill-filter-btn bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-xl';
+      });
+      btn.className = 'mill-filter-btn active bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl';
+      renderMillOrders(filter);
+    }
+
+    /* ОТКРЫТИЕ ВЕСОВОГО ОКНА МЕЛЬНИЦЫ */
+    function openMillModal(orderId) {
+      activeMillOrderId = orderId;
+      const ord = ordersList.find(o => o.id === orderId);
+      if (ord) {
+        document.getElementById('mill-modal-title').innerText = `Весовая • Заявка #${ord.id}`;
+        document.getElementById('mill-modal-sub').innerText = `${ord.farmer} • ${ord.volume} т (${ord.crop})`;
+        document.getElementById('mill-fact-weight').value = ord.volume;
+        document.getElementById('mill-modal-price').innerText = `${ord.pricePerTon.toLocaleString('ru-RU')} ₸/т`;
+        document.getElementById('mill-modal-total').innerText = `${(ord.volume * ord.pricePerTon).toLocaleString('ru-RU')} ₸`;
+        document.getElementById('mill-modal').classList.remove('hidden');
+      }
+    }
+
+    function closeMillModal() {
+      document.getElementById('mill-modal').classList.add('hidden');
+      activeMillOrderId = null;
+    }
+
+    /* ПОДТВЕРЖДЕНИЕ ВЕСОВОГО КОНТРОЛЯ И ЗАКРЫТИЕ СДЕЛКИ */
+    function confirmMillWeighing() {
+      if (!activeMillOrderId) return;
+      const ord = ordersList.find(o => o.id === activeMillOrderId);
+      if (ord) {
+        ord.status = 'PAID';
+        ord.statusText = 'Сделка закрыта / Оплачено';
+
+        if (tg) tg.HapticFeedback.notificationOccurred('success');
+        sendTelegramBotNotification(`💰 <b>Деньги зачислены!</b>\nСделка по заявке #${ord.id} на сумму ${(ord.volume * ord.pricePerTon).toLocaleString('ru-RU')} ₸ успешно закрыта на весовой мельницы.`);
+
+        closeMillModal();
+        renderMillOrders('ALL');
+        alert(`Зерно взвешено! Сделка по заявке #${ord.id} закрыта, средства отправлены фермеру.`);
+      }
+    }
+
     function openPassportModal(orderId) {
       const ord = ordersList.find(o => o.id === orderId);
       if (!ord || !ord.passport) return;
@@ -1027,7 +1192,6 @@
       document.getElementById('passport-modal').classList.add('hidden');
     }
 
-    /* ОТКРЫТИЕ ЭЛЕКТРОННОЙ ТТН */
     function openTtnModal(orderId) {
       const ord = ordersList.find(o => o.id === orderId);
       if (!ord) return;
@@ -1047,85 +1211,6 @@
 
     function closeTtnModal() {
       document.getElementById('ttn-modal').classList.add('hidden');
-    }
-
-    /* РЕНДЕР ЭКРАНА ЛАБОРАНТА */
-    function renderLabOrders(filter) {
-      const container = document.getElementById('lab-orders-list');
-      
-      let filtered = ordersList;
-      if (filter === 'PENDING') filtered = ordersList.filter(o => o.status === 'NEW' || o.status === 'IN_PROGRESS');
-      if (filter === 'COMPLETED') filtered = ordersList.filter(o => o.status === 'DONE');
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center text-gray-400 py-8 text-sm">В этой категории нет заявок</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(ord => {
-        let statusBadge = '';
-        let actionBtn = '';
-
-        if (ord.status === 'NEW') {
-          statusBadge = `<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Новая</span>`;
-          actionBtn = `
-            <button onclick="acceptLabOrder('${ord.id}')" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1">
-              <i data-lucide="truck" class="w-4 h-4"></i> Выехать на ток
-            </button>`;
-        } else if (ord.status === 'IN_PROGRESS') {
-          statusBadge = `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full">В пути</span>`;
-          actionBtn = `
-            <button onclick="openLabModal('${ord.id}')" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1">
-              <i data-lucide="flask-conical" class="w-4 h-4"></i> Ввести замеры качества
-            </button>`;
-        } else if (ord.status === 'DONE') {
-          statusBadge = `<span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2.5 py-1 rounded-full">Паспорт и ТТН готовы</span>`;
-          actionBtn = `
-            <div class="flex gap-2">
-              <button onclick="openPassportModal('${ord.id}')" class="w-1/2 bg-brand-50 text-brand-700 border border-brand-500/20 font-bold py-2 rounded-xl text-xs">Паспорт</button>
-              <button onclick="openTtnModal('${ord.id}')" class="w-1/2 bg-gray-900 text-white font-bold py-2 rounded-xl text-xs">ЭТТН</button>
-            </div>`;
-        }
-
-        const farmerTgBtn = ord.farmerTg ? `
-          <button onclick="openTelegramChat('${ord.farmerTg}')" class="bg-sky-50 text-sky-600 border border-sky-200 px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1">
-            <i data-lucide="send" class="w-3 h-3"></i> Telegram
-          </button>
-        ` : '';
-
-        return `
-          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
-            <div class="flex justify-between items-start">
-              <div>
-                <div class="flex items-center gap-2">
-                  <h3 class="font-extrabold text-sm text-gray-900">#${ord.id}</h3>
-                  <span class="text-[11px] text-gray-400 font-medium">${ord.time}</span>
-                </div>
-                <div class="text-xs font-semibold text-gray-700">${ord.mill}</div>
-              </div>
-              ${statusBadge}
-            </div>
-
-            <div class="bg-gray-50 p-3 rounded-xl text-xs text-gray-600 space-y-1.5 border border-gray-100">
-              <div class="flex justify-between items-center">
-                <div>👤 <b>Фермер:</b> ${ord.farmer || 'Аноним'}</div>
-                <div class="flex gap-1">
-                  <a href="tel:${ord.phone}" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-lg font-bold text-xs flex items-center gap-1">
-                    <i data-lucide="phone" class="w-3 h-3"></i> Звонок
-                  </a>
-                  ${farmerTgBtn}
-                </div>
-              </div>
-              <div>📍 <b>Локация:</b> ${ord.location}</div>
-              <div>🌾 <b>Партия:</b> ${ord.volume} тонн (${ord.crop})</div>
-            </div>
-
-            ${actionBtn}
-          </div>
-        `;
-      }).join('');
-
-      updateIcons();
     }
 
     function filterLabOrders(filter, btn) {
@@ -1179,7 +1264,7 @@
         };
 
         ord.status = 'DONE';
-        ord.statusText = 'Завершено';
+        ord.statusText = 'Паспорт готов (Ожидает весовую)';
 
         if (tg) tg.HapticFeedback.notificationOccurred('success');
         sendTelegramBotNotification(`📄 <b>Паспорт качества и ЭТТН по заявке #${ord.id} готовы!</b>\n🌾 Клейковина: ${glutenVal}%\n💧 Влажность: ${moistureVal}%\n⚖️ Натура: ${testWeightVal} г/л`);
